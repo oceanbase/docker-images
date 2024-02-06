@@ -1,30 +1,21 @@
 #!/bin/bash
-
-if [ "$#" -gt 1 ]; then
-    exit 1
-elif [ "$#" -eq 1 ]; then
-    BUILD_ARG="--build-arg VERSION=$1"
-else
-    BUILD_ARG=""
-fi
+RPM_VERSION=$1
 
 TMP_INIT_STORE_PY_SCRIPT="init_store_for_fast_start.tmp.py"
-ACTUAL_INIT_STORE_PY_SCRIPT="init_store_for_fast_start.py"
+ACTUAL_INIT_STORE_PY_SCRIPT="./fast_boot_docker_build_prepare/init_store_for_fast_start.py"
 
 CWD=$(cd `dirname $0`;pwd)
 cd "${CWD}"
 
 function fast_boot_docker_build() {
-    rm -rf boot
-    cp -r step_1_boot boot
-    docker build $BUILD_ARG --build-arg STEP=1 -t raw_observer .
+    cd fast_boot_docker_build_prepare && \
+    docker build --build-arg VERSION="${RPM_VERSION}" -t raw_observer .
     if [ $? == 0 ]; then
         echo "================== build prepare docker ok ==============="
     else
         echo "================== build prepare docker failed ==============="
         exit -1
     fi
-    rm -rf boot
 
     cd "${CWD}" && mkdir -p ${CWD}/boot/etc
     docker run -it -v ${CWD}/boot:/root/dest raw_observer
@@ -38,32 +29,30 @@ function fast_boot_docker_build() {
     fi
 
     cd "${CWD}"
-    cp -r step_2_boot/* boot
-    docker build $BUILD_ARG --build-arg STEP=2 -t oceanbase-ce .
+    docker build --build-arg VERSION="${RPM_VERSION}" -t oceanbase-ce .
     if [ $? == 0 ]; then
-        echo "================== docker build ok ==============="
+        echo "================== fast boot docker build ok ==============="
     else
-        echo "================== docker build failed ==============="
+        echo "================== fast boot docker build failed ==============="
         exit -1
     fi
 }
 
-source ./step_2_boot/_env
+source ./boot/_env
+if [ "x${MODE}" != "xSTANDALONE" ]; then
+    echo "please set MODE to STANDALONE for building fast boot docker"
+    exit -1
+fi
 OS=`uname`
 cp ${TMP_INIT_STORE_PY_SCRIPT} ${ACTUAL_INIT_STORE_PY_SCRIPT}
-
 if [ "$OS" == 'Darwin' ]; then
-    sed -i '' -e "s/@OB_SERVER_IP@/${OB_SERVER_IP}/g" ${ACTUAL_INIT_STORE_PY_SCRIPT}
     sed -i '' -e "s/@OB_MYSQL_PORT@/${OB_MYSQL_PORT}/g" ${ACTUAL_INIT_STORE_PY_SCRIPT}
     sed -i '' -e "s/@OB_RPC_PORT@/${OB_RPC_PORT}/g" ${ACTUAL_INIT_STORE_PY_SCRIPT}
     sed -i '' -e "s/@OB_TENANT_NAME@/${OB_TENANT_NAME}/g" ${ACTUAL_INIT_STORE_PY_SCRIPT}
-    sed -i '' -e "s/@OB_TENANT_LOWER_CASE_TABLE_NAMES@/${OB_TENANT_LOWER_CASE_TABLE_NAMES}/g" ${ACTUAL_INIT_STORE_PY_SCRIPT}
 else
-    sed -i'' -e "s/@OB_SERVER_IP@/${OB_SERVER_IP}/g" ${ACTUAL_INIT_STORE_PY_SCRIPT}
     sed -i'' -e "s/@OB_MYSQL_PORT@/${OB_MYSQL_PORT}/g" ${ACTUAL_INIT_STORE_PY_SCRIPT}
     sed -i'' -e "s/@OB_RPC_PORT@/${OB_RPC_PORT}/g" ${ACTUAL_INIT_STORE_PY_SCRIPT}
     sed -i'' -e "s/@OB_TENANT_NAME@/${OB_TENANT_NAME}/g" ${ACTUAL_INIT_STORE_PY_SCRIPT}
-    sed -i'' -e "s/@OB_TENANT_LOWER_CASE_TABLE_NAMES@/${OB_TENANT_LOWER_CASE_TABLE_NAMES}/g" ${ACTUAL_INIT_STORE_PY_SCRIPT}
 fi
 
 fast_boot_docker_build
