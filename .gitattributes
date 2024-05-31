@@ -1,0 +1,11 @@
+* text=auto
+
+*.config  text
+*.sql     text
+*.md      text
+*.py      text
+*.yaml    text
+*.yml     text
+*.sh      eol=lf
+*.conf    eol=lf
+Dockerfile  text
