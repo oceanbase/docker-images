@@ -37,10 +37,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: oceanbase-ce
-          path: oceanbase-ce.tar
+          path: /tmp
 
       - name: Load Docker image
-        run: docker load --input oceanbase-ce.tar
+        run: docker load -i /tmp/oceanbase-ce.tar
 
       - name: Start Docker container
         uses: oceanbase/setup-oceanbase-ce@v1
