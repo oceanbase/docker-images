@@ -23,5 +23,6 @@ jobs:
         with:
           image_name: oceanbase-ce
           container_name: ob-slim
+          fastboot: false
       - name: Test Docker container
         run: docker exec ob-slim obclient -h127.0.0.1 -P2881 -uroot -e 'select version()'
