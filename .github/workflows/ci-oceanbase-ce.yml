@@ -1,0 +1,27 @@
+name: oceanbase-ce
+
+on:
+  push:
+    paths:
+      - '.github/workflows/ci-oceanbase-ce.yml'
+      - 'oceanbase-ce/**'
+  pull_request:
+    paths:
+      - '.github/workflows/ci-oceanbase-ce.yml'
+      - 'oceanbase-ce/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Build Docker image
+        run: ./oceanbase-ce/docker_build.sh
+      - name: Start Docker container
+        uses: oceanbase/setup-oceanbase-ce@v1
+        with:
+          image_name: oceanbase-ce
+          container_name: ob-slim
+      - name: Test Docker container
+        run: docker exec ob-slim obclient -h127.0.0.1 -P2881 -uroot -e 'select version()'
