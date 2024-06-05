@@ -14,6 +14,24 @@ ACTUAL_INIT_STORE_PY_SCRIPT="init_store_for_fast_start.py"
 CWD=$(cd `dirname $0`;pwd)
 cd "${CWD}"
 
+function boot_raw_observer() {
+    log_file="raw_observer.log"
+
+    docker run --name raw_observer -v ${CWD}/boot:/root/dest -d raw_observer
+    docker logs -f raw_observer > "$log_file" 2>&1 &
+
+    while true; do
+        while IFS= read -r line; do
+            echo "$line"
+            if [[ "$line" == *"prepare fast boot finish"* ]]; then
+                return 0
+            elif [[ "$line" == *"prepare fast boot failed"* ]]; then
+                return -1
+            fi
+        done < <(tail -f "$log_file")
+    done
+}
+
 function fast_boot_docker_build() {
     rm -rf boot
     cp -r step_1_boot boot
@@ -27,7 +45,7 @@ function fast_boot_docker_build() {
     rm -rf boot
 
     cd "${CWD}" && mkdir -p ${CWD}/boot/etc
-    docker run -it -v ${CWD}/boot:/root/dest raw_observer
+    boot_raw_observer
     if [ $? == 0 ]; then
         echo "================== prepare docker run ok ==============="
     else

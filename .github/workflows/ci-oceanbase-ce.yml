@@ -1,0 +1,55 @@
+name: oceanbase-ce
+
+on:
+  push:
+    paths:
+      - '.github/workflows/ci-oceanbase-ce.yml'
+      - 'oceanbase-ce/**'
+  pull_request:
+    paths:
+      - '.github/workflows/ci-oceanbase-ce.yml'
+      - 'oceanbase-ce/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: ./oceanbase-ce/docker_build.sh
+
+      - name: Export Docker image
+        run: docker save -o oceanbase-ce.tar oceanbase-ce
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oceanbase-ce
+          path: oceanbase-ce.tar
+
+  test-slim:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: oceanbase-ce
+          path: /tmp
+
+      - name: Load Docker image
+        run: docker load -i /tmp/oceanbase-ce.tar
+
+      - name: Start Docker container
+        uses: oceanbase/setup-oceanbase-ce@v1
+        with:
+          image_name: oceanbase-ce
+          container_name: ob-slim
+          fastboot: false
+
+      - name: Test Docker container
+        run: |
+          docker exec ob-slim obclient -h127.0.0.1 -P2881 -uroot -e 'select version()'
+          docker exec ob-slim obclient -h127.0.0.1 -P2881 -uroot@test -e 'show databases'
