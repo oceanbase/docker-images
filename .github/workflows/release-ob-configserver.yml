@@ -1,15 +1,15 @@
-name: release oceanbase-cloud-native
+name: release ob-configserver
 
-on:
+on: 
   push:
-    tags:
-      - "oceanbase-*"
+    tags: 
+      - "ob-configserver-*"
 
 env:
   tagName: ${{ github.ref_name }}
 
 jobs:
-  release-oceanbase-cloud-native:
+  release-ob-configserver:
     runs-on: ubuntu-latest
     steps:
       - name: Log in to Docker hub
@@ -29,15 +29,15 @@ jobs:
 
       - name: Set Version variables
         id: set_version_vars
-        run: echo "version=$(echo $tagName | grep -P '(\d*\.\d*\.\d*\.\d*-\d{18})' --only-matching)" >> $GITHUB_OUTPUT
+        run: echo "version=$(echo $tagName | grep -P '(\d*\.\d*\.\d*-\d*)' --only-matching)" >> $GITHUB_OUTPUT
 
-      - name: Build and push observer w/o cache
+      - name: Build and push ob-configserver w/o cache
         uses: docker/build-push-action@v2
         with:
-          context: ./oceanbase-cloud-native
+          context: ./ob-configserver
           platforms: linux/amd64,linux/arm64
-          file: ./oceanbase-cloud-native/Dockerfile
+          file: ./ob-configserver/Dockerfile
           push: true
-          tags: ${{ vars.DOCKER_PUSH_BASE }}/oceanbase-cloud-native:${{ steps.set_version_vars.outputs.version }}
+          tags: ${{ vars.DOCKER_PUSH_BASE }}/ob-configserver:${{ steps.set_version_vars.outputs.version }}
           build-args: |
             VERSION=${{ steps.set_version_vars.outputs.version }}
