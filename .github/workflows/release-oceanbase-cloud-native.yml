@@ -36,7 +36,7 @@ jobs:
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          file: ./build/Dockerfile.observer
+          file: ./oceanbase-cloud-native/Dockerfile
           push: true
           tags: ${{ vars.DOCKER_PUSH_BASE }}/oceanbase-cloud-native:${{ steps.set_version_vars.outputs.version }}
           build-args: |
