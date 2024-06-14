@@ -162,7 +162,7 @@ else # nothing here, bootstrap
   if [ "x${MODE}" == "xSLIM" ]; then
     cat ob-configserver.yaml >> $TMPFILE
   fi
-
+  
   sed -i "s|@OB_SERVER_IP@|${OB_SERVER_IP}|g" $TMPFILE
   sed -i "s|@OB_HOME_PATH@|${OB_HOME_PATH}|g" $TMPFILE
   sed -i "s|@OB_MYSQL_PORT@|${OB_MYSQL_PORT}|g" $TMPFILE
@@ -188,7 +188,7 @@ else # nothing here, bootstrap
   remove_disk_check_logic_in_obd
 
   if fastboot; then
-    obd devmode enable && obd cluster deploy "${OB_CLUSTER_NAME}" -c $TMPFILE;
+    obd devmode enable && obd cluster deploy "${OB_CLUSTER_NAME}" -c $TMPFILE < /dev/null;
     if [ $? -ne 0 ]; then
       deploy_failed
     fi
@@ -218,7 +218,7 @@ else # nothing here, bootstrap
 
   else
     print_start_phase "Ob-deploy autodeploy"
-    obd devmode enable && obd cluster autodeploy "${OB_CLUSTER_NAME}" -c $TMPFILE;
+    obd devmode enable && obd cluster autodeploy "${OB_CLUSTER_NAME}" -c $TMPFILE < /dev/null;
     print_end_phase
 
     print_start_phase "Ob-deploy Create Tenant"
@@ -232,7 +232,7 @@ else # nothing here, bootstrap
     if ! [ -z "${OB_TENANT_LOG_DISK_SIZE}" ]; then
       create_tenant_cmd="${create_tenant_cmd} --log-disk-size=${OB_TENANT_LOG_DISK_SIZE}"
     fi;
-    eval ${create_tenant_cmd}
+    eval ${create_tenant_cmd} < /dev/null
     if [ $? -ne 0 ]; then
       deploy_failed
     fi
