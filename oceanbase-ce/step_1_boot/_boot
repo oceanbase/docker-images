@@ -3,7 +3,7 @@ CWD=$(cd `dirname $0`;pwd)
 cd "${CWD}"
 
 echo "================== prepare python env ... =================="
-yum install -y wget python3 && pip3 install pymysql
+yum install -y wget python3 && pip3 install pymysql -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
 if [ $? == 0 ]; then
     echo "================== prepare python env ok  =================="
 else

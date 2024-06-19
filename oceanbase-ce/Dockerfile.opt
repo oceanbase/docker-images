@@ -1,0 +1,33 @@
+FROM openanolis/anolisos as builder
+
+ARG VERSION
+
+WORKDIR /root
+
+RUN yum install -y yum-utils && \
+    yum-config-manager --add-repo https://mirrors.oceanbase.com/oceanbase/OceanBase.repo && \
+    sed -i 's/$releasever/7/' /etc/yum.repos.d/OceanBase.repo && \
+    yum install -y ob-deploy && \
+    yum clean all
+
+RUN obd mirror disable remote && obd mirror add-repo http://yum-test.obvos.alibaba-inc.com/oceanbase/OceanBaseTest.repo
+
+RUN obd demo -c oceanbase-ce,obagent,ob-configserver --oceanbase-ce.version=${VERSION} --oceanbase-ce.home_path=/root/demo/oceanbase-ce --oceanbase-ce.scenario=express_oltp --obagent.home_path=/root/demo/obagent --ob-configserver.home_path=/root/demo/ob-configserver && obd cluster tenant create demo -n test && sleep 60 &&  obd cluster stop demo -v
+
+FROM openanolis/anolisos
+
+WORKDIR /root
+
+COPY --from=builder /root/.obd /root/.obd
+COPY --from=builder /root/demo /root/demo
+
+RUN yum install -y yum-utils && \
+    yum-config-manager --add-repo https://mirrors.oceanbase.com/oceanbase/OceanBase.repo && \
+    sed -i 's/$releasever/7/' /etc/yum.repos.d/OceanBase.repo && \
+    yum install -y ob-deploy && \
+    yum clean all
+ADD start.sh /root
+
+ENTRYPOINT ["./start.sh"]
+
+## TODO install obclient and add ob-mysql script
