@@ -1,13 +1,13 @@
-name: oceanbase-ce
+name: test oceanbase-ce
 
 on:
   push:
     paths:
-      - '.github/workflows/ci-oceanbase-ce.yml'
+      - '.github/workflows/test-oceanbase-ce.yml'
       - 'oceanbase-ce/**'
   pull_request:
     paths:
-      - '.github/workflows/ci-oceanbase-ce.yml'
+      - '.github/workflows/test-oceanbase-ce.yml'
       - 'oceanbase-ce/**'
 
 jobs:
