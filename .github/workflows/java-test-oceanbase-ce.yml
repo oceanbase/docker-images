@@ -1,0 +1,89 @@
+name: java test oceanbase-ce
+
+on:
+  workflow_call:
+    inputs:
+      cache_key:
+        required: true
+        type: string
+      image_file:
+        required: true
+        type: string
+      mode:
+        required: true
+        type: string
+      port:
+        required: true
+        type: string
+      sys_password:
+        required: false
+        type: string
+        default: ''
+      test_tenant:
+        required: false
+        type: string
+        default: 'test'
+      test_password:
+        required: false
+        type: string
+        default: ''
+      server_ip:
+        required: false
+        type: string
+        default: '127.0.0.1'
+      rs_list:
+        required: false
+        type: string
+        default: '127.0.0.1:2882:2881'
+      init_sql:
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  test-oceanbase-ce:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.cache_key }}
+          path: /tmp
+
+      - name: Load Docker image
+        run: docker load -i /tmp/${{ inputs.image_file }}
+
+      - name: Start Docker container
+        uses: oceanbase/setup-oceanbase-ce@v1
+        with:
+          image_name: oceanbase-ce
+          mode: ${{ inputs.mode }}
+          sql_port: ${{ inputs.port }}
+          sys_root_password: ${{ inputs.sys_password }}
+          tenant_name: ${{ inputs.test_tenant }}
+          init_sql: ${{ inputs.init_sql }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'zulu'
+
+      - name: Test Docker container
+        env:
+          cluster_name: 'github-action'
+          host: '127.0.0.1'
+          port: ${{ inputs.port }}
+          sys_username: 'root'
+          sys_password: ${{ inputs.sys_password }}
+          test_tenant: ${{ inputs.test_tenant }}
+          test_username: 'root@${{ inputs.test_tenant }}'
+          test_password: ${{ inputs.test_password }}
+          server_ip: ${{ inputs.server_ip }}
+          rs_list: ${{ inputs.rs_list }}
+        run: |
+          cd test
+          mvn verify -Dtest=OceanBaseCETest -DfailIfNoTests=false

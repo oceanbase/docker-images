@@ -2,4 +2,5 @@
 .idea
 .vscode
 *.log
+target
 oceanbase-ce/Dockerfile.inner
