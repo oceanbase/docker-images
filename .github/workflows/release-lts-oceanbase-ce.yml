@@ -3,7 +3,7 @@ name: release oceanbase-ce lts version
 on:
   push:
     tags:
-      - "oceanbase-*"
+      - "oceanbase-lts-*"
 
 env:
   tagName: ${{ github.ref_name }}
