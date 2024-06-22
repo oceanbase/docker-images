@@ -1,5 +1,3 @@
-oceanbase-ce/boot/
-oceanbase-ce/init_store_for_fast_start.py
 .DS_Store
 .idea
 .vscode

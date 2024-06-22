@@ -1,43 +1,53 @@
-FROM openanolis/anolisos
+FROM openanolis/anolisos as builder
 
-# docker build --build-arg VERSION={VERSION} .
 ARG VERSION
-ARG STEP
+
+WORKDIR /root
+
+COPY build /root/build
+RUN mkdir -p pkgs
 
 RUN yum install -y yum-utils && \
-    yum-config-manager --add-repo https://mirrors.oceanbase.com/oceanbase/OceanBase.repo && \
-    sed -i 's/$releasever/7/' /etc/yum.repos.d/OceanBase.repo && \
-    yum install -y ob-deploy obclient ob-sysbench libaio bc libselinux-utils zip && \
-    rm -rf /usr/obd/mirror/remote/* && \
+    yum-config-manager --add-repo http://mirrors.aliyun.com/oceanbase/OceanBase.repo && \
+    yum install -y ob-deploy && \
     yum clean all
 
-ENV STEP=$STEP
-RUN if [ "$STEP" == 1 ]; then \
-      yum install -y mysql; \
-    fi
+# download and clone all the required packages
+RUN yum install -y --downloadonly --downloaddir=/root/pkgs oceanbase-ce-${VERSION}.el8 oceanbase-ce-libs-${VERSION}.el8 obagent ob-configserver
+RUN obd mirror clone /root/pkgs/*.rpm
+RUN obd env set IO_DEFAULT_CONFIRM 1
+RUN obd mirror disable remote
+RUN obd cluster deploy demo -c build/deploy.yaml
+RUN obd cluster destroy -f demo
 
-ENV OBVersion=$VERSION
-RUN if [ -z "${OBVersion}" ]; then \
-      echo "VERSION is empty, then build the docker with latest rpm"; \
-      VersionPre=`yum info oceanbase-ce | grep Version | awk '{print $3}'`; \
-      Release=`yum info oceanbase-ce | grep Release | awk '{print $3}' | awk -F. '{print $1}'`; \
-      OBVersion="${VersionPre}-${Release}"; \
-    else \
-      echo "build the docker with VERSION ${OBVersion}"; \
-    fi && \
-    mkdir -p /root/pkg && mkdir -p /root/store && mkdir -p /root/dest && \
-    cd /root/pkg && \
-    yum install -y --downloadonly --downloaddir=. oceanbase-ce-${OBVersion}.el7 oceanbase-ce-libs-${OBVersion}.el7 obagent ob-configserver && \
-    rm -rf /usr/obd/mirror/remote/* && \
-    yum clean all
+RUN obd demo -c oceanbase-ce --oceanbase-ce.home_path=/root/demo --oceanbase-ce.scenario=express_oltp --oceanbase-ce.datafile_size=256M --oceanbase-ce.log_disk_size=5G && obd cluster tenant create demo -n test -o express_oltp 
+RUN obd cluster stop demo
+RUN cd /root/demo && tar -cvzf store.tar.gz store
+RUN rm -rf /root/demo/store && rm -rf /root/demo/log/* && rm -rf /root/demo/log_obshell/* && rm -rf /root/demo/etc/*.py && rm -rf /root/demo/etc/obshell && rm -rf /root/demo/etc/*.sql && rm -rf /root/demo/etc/*.log
+RUN cd /root/.obd && rm -rf log/obd && tar -cvzf repository.tar.gz repository && rm -rf /root/.obd/repository && rm -rf /root/.obd/mirror/local/*
 
-COPY boot /root/boot/
-COPY init_store_for_fast_start.py /root/boot/
-ENV PATH /root/boot:$PATH
-ENV LD_LIBRARY_PATH /home/admin/oceanbase/lib:/root/ob/lib:$LD_LIBRARY_PATH
+FROM openanolis/anolisos
 
-STOPSIGNAL SIGTERM
 WORKDIR /root
-CMD _boot
+RUN yum install -y yum-utils && \
+    yum-config-manager --add-repo http://mirrors.aliyun.com/oceanbase/OceanBase.repo && \
+    yum install -y ob-deploy obclient ob-sysbench gettext ncurses-compat-libs openssh-server && \
+    yum clean all
 
-EXPOSE 2881
+RUN obd env set IO_DEFAULT_CONFIRM 1
+RUN obd mirror disable remote
+
+RUN ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ''
+RUN ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N ''
+RUN ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N ''
+RUN ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ''
+RUN ssh-keygen -t rsa -f /root/.ssh/id_rsa -N ''
+RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+
+COPY --from=builder /root/demo /root/demo
+COPY --from=builder /root/demo/store.tar.gz /root/demo
+COPY --from=builder /root/.obd /root/.obd
+COPY boot /root/boot
+COPY templates /root/templates
+
+ENTRYPOINT ["bash", "-c", "/usr/sbin/sshd && /root/boot/start.sh"]
