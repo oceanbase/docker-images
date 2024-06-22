@@ -33,7 +33,7 @@ jobs:
 
       - name: Set Tag variables
         id: set_tag_vars
-        run: echo "image_tag=$(echo $tagName | grep -P '(\d*\.\d*\.\d*\.\d*)' --only-matching" >> $GITHUB_OUTPUT
+        run: echo "image_tag=$(echo $tagName | grep -P '(\d*\.\d*\.\d*\.\d*)' --only-matching)" >> $GITHUB_OUTPUT
 
       - name: Build and push observer w/o cache
         uses: docker/build-push-action@v2
