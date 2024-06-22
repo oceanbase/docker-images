@@ -18,8 +18,8 @@ RUN yum install -y --downloadonly --downloaddir=/root/pkgs oceanbase-ce-${VERSIO
 RUN obd mirror clone /root/pkgs/*.rpm
 RUN obd env set IO_DEFAULT_CONFIRM 1
 RUN obd mirror disable remote
-RUN obd cluster deploy demo -c build/deploy.yaml
-RUN obd cluster destroy -f demo
+# RUN obd cluster deploy demo -c build/deploy.yaml
+# RUN obd cluster destroy -f demo
 
 RUN obd demo -c oceanbase-ce --oceanbase-ce.home_path=/root/demo --oceanbase-ce.scenario=express_oltp --oceanbase-ce.datafile_size=256M --oceanbase-ce.log_disk_size=5G && obd cluster tenant create demo -n test -o express_oltp 
 RUN obd cluster stop demo
