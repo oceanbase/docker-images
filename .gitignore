@@ -2,3 +2,4 @@
 .idea
 .vscode
 *.log
+oceanbase-ce/Dockerfile.inner
