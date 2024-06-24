@@ -1,15 +1,15 @@
-name: release ob-configserver
+name: release oblogproxy-ce
 
-on: 
+on:
   push:
-    tags: 
-      - "ob-configserver-*"
+    tags:
+      - "oblogproxy-ce-*"
 
 env:
   tagName: ${{ github.ref_name }}
 
 jobs:
-  release-ob-configserver:
+  release-oblogproxy-ce:
     runs-on: ubuntu-latest
     steps:
       - name: Log in to Docker hub
@@ -29,15 +29,15 @@ jobs:
 
       - name: Set Version variables
         id: set_version_vars
-        run: echo "version=$(echo $tagName | grep -P '(\d*\.\d*\.\d*-\d*)' --only-matching)" >> $GITHUB_OUTPUT
+        run: echo "version=$(echo $tagName | grep -P '(\d*\.\d*\.\d*-\d{18})' --only-matching)" >> $GITHUB_OUTPUT
 
-      - name: Build and push ob-configserver w/o cache
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ./ob-configserver
+          context: ./oblogproxy-ce
           platforms: linux/amd64,linux/arm64
-          file: ./ob-configserver/Dockerfile
+          file: ./oblogproxy-ce/Dockerfile
           push: true
-          tags: ${{ vars.DOCKER_PUSH_BASE }}/ob-configserver:${{ steps.set_version_vars.outputs.version }}
+          tags: ${{ vars.DOCKER_PUSH_BASE }}/oblogproxy-ce:${{ steps.set_version_vars.outputs.version }}
           build-args: |
             VERSION=${{ steps.set_version_vars.outputs.version }}
