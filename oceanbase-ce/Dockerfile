@@ -8,7 +8,7 @@ COPY build /root/build
 RUN mkdir -p pkgs
 
 RUN yum install -y yum-utils && \
-    yum-config-manager --add-repo http://mirrors.aliyun.com/oceanbase/OceanBase.repo && \
+    yum-config-manager --add-repo http://mirrors.oceanbase.com/oceanbase/OceanBase.repo && \
     sed -i 's/$releasever/7/' /etc/yum.repos.d/OceanBase.repo && \
     yum install -y ob-deploy && \
     yum clean all
@@ -31,7 +31,7 @@ FROM --platform=$BUILDPLATFORM openanolis/anolisos
 
 WORKDIR /root
 RUN yum install -y yum-utils && \
-    yum-config-manager --add-repo http://mirrors.aliyun.com/oceanbase/OceanBase.repo && \
+    yum-config-manager --add-repo http://mirrors.oceanbase.com/oceanbase/OceanBase.repo && \
     sed -i 's/$releasever/7/' /etc/yum.repos.d/OceanBase.repo && \
     yum install -y ob-deploy obclient ob-sysbench gettext ncurses-compat-libs openssh-server && \
     yum clean all
