@@ -64,7 +64,7 @@ function run_custom_scripts_recursive {
 }
 
 function deploy_failed {
-  echo "deploy failed!"
+  echo "boot failed!"
   if exit_while_error
   then
     exit 1
