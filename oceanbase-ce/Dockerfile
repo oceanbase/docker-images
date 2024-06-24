@@ -1,4 +1,4 @@
-FROM openanolis/anolisos as builder
+FROM --platform=$BUILDPLATFORM openanolis/anolisos as builder
 
 ARG VERSION
 
@@ -27,7 +27,7 @@ RUN cd /root/demo && tar -cvzf store.tar.gz store
 RUN rm -rf /root/demo/store && rm -rf /root/demo/log/* && rm -rf /root/demo/log_obshell/* && rm -rf /root/demo/etc/*.py && rm -rf /root/demo/etc/obshell && rm -rf /root/demo/etc/*.sql && rm -rf /root/demo/etc/*.log && rm -rf /root/demo/run/*
 RUN cd /root/.obd && rm -rf log/obd && tar -cvzf repository.tar.gz repository && rm -rf /root/.obd/repository && rm -rf /root/.obd/mirror/local/*
 
-FROM openanolis/anolisos
+FROM --platform=$BUILDPLATFORM openanolis/anolisos
 
 WORKDIR /root
 RUN yum install -y yum-utils && \
