@@ -17,8 +17,18 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          config-inline: |
+            [worker.oci]
+              max-parallelism = 1
+
       - name: Build Docker image
-        run: ./oceanbase-ce/docker_build.sh
+        run: docker buildx build -t oceanbase-ce -f oceanbase-ce/Dockerfile --build-arg {{ vars.TEST_OCEANBASE_VERSION }} --platform=linux/amd64 ./oceanbase-ce
 
       - name: Export Docker image
         run: docker save -o oceanbase-ce.tar oceanbase-ce
