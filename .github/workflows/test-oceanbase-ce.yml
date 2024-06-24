@@ -14,6 +14,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Echo version
+        run: echo ${{ vars.TEST_OCEANBASE_VERSION }}
+
       - name: Check out repository code
         uses: actions/checkout@v4
 
