@@ -28,7 +28,7 @@ jobs:
               max-parallelism = 1
 
       - name: Build Docker image
-        run: docker buildx build -t oceanbase-ce -f oceanbase-ce/Dockerfile --build-arg {{ vars.TEST_OCEANBASE_VERSION }} --platform=linux/amd64 ./oceanbase-ce
+        run: docker buildx build -t oceanbase-ce -f oceanbase-ce/Dockerfile --build-arg VERSION={{ vars.TEST_OCEANBASE_VERSION }} --platform=linux/amd64 ./oceanbase-ce
 
       - name: Export Docker image
         run: docker save -o oceanbase-ce.tar oceanbase-ce
