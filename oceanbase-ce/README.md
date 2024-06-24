@@ -5,8 +5,8 @@ OceanBase provide a standalone test image named [oceanbase-ce](https://hub.docke
 **WARNING**
 
 - The `oceanbase-ce` docker image is just used for study or test;
-- Please use [ob-operator](https://github.com/oceanbase/ob-operator) instead if you want to deploy OceanBase in k8s;
-- You should not deploy it with important data as it is not used in production environment.
+- Please use [ob-operator](https://github.com/oceanbase/ob-operator) instead if you want to deploy OceanBase on Kubernetes;
+- You should not deploy it with important data as it is not designed to use in production environment.
 
 Reasons:
 
@@ -30,14 +30,15 @@ To start an OceanBase instance, run this command:
 # deploy mini instance
 docker run -p 2881:2881 --name oceanbase-ce -d oceanbase/oceanbase-ce
 
-# deploy an instance of the slim size according to the current container
-docker run -p 2881:2881 --name oceanbase-ce -e MODE=slim -e OB_MEMORY_LIMIT=5G -v {init_sql_folder_path}:/root/boot/init.d -d oceanbase/oceanbase-ce
-
 # deploy an instance of the largest size according to the current container
 docker run -p 2881:2881 --name oceanbase-ce -e MODE=normal -d oceanbase/oceanbase-ce
 
 # deploy a quick-start instance in any mode as desired to the current container
-docker run -p 2881:2881 --name oceanbase-ce -e FASTBOOT=true -d oceanbase/oceanbase-ce
+docker run -p 2881:2881 --name oceanbase-ce -e MODE=slim -d oceanbase/oceanbase-ce
+
+# deploy an instance and execute init sqls
+docker run -p 2881:2881 --name oceanbase-ce -v {init_sql_folder_path}:/root/boot/init.d -d oceanbase/oceanbase-ce
+
 ```
 
 Up to five minutes are necessary for the boot procedure. To make sure that the boot procedure is successful, run this command:
@@ -75,15 +76,14 @@ This table shows the supported environment variables of the current oceanbase-ce
 
 | Variable name           | Default value        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 |-------------------------|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| MODE                    | {mini, slim, normal} | If it is mini, then the docker use mini mode to deploy OceanBase Database instance, it should be used only for research/study/evaluation.  DO NOT use it for production or performance testing. If it is slim, then the docker can run in a smaller instance. It remove the obagent and can run a self tenant initial sql by yourself in the mount volume /root/boot/init.d. If you do not mount the volume path the docker does not init the tenant sql. |
-| FASTBOOT                | false                | The container can run in a quick-start mode when FASTBOOT=true.                                                                                                                                                                                                                                                                                                                                                                                           |
+| MODE                    | {mini, slim, normal} | If it is mini, then the docker use mini mode to deploy OceanBase Database instance, it should be used only for research/study/evaluation.  DO NOT use it for production or performance testing. If it is slim, then the container starts in quick start mode. It remove the obagent and ob-configserver. |
 | EXIT_WHILE_ERROR        | true                 | Whether quit the container while start observer failed. If start observer failed, you can not explore the logs as the container will exit. But if you set the EXIT_WHILE_ERROR=false, the container will not exit while observer starting fail and you can use docker exec to debug.                                                                                                                                                                      |
 | OB_CLUSTER_NAME         | obcluster            | The oceanbase cluster name                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | OB_TENANT_NAME          | test                 | The oceanbase mysql tenant name                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | OB_MEMORY_LIMIT         | 6G                   | The oceanbase cluster memory_limit configuration                                                                                                                                                                                                                                                                                                                                                                                                          |
 | OB_DATAFILE_SIZE        | 5G                   | The oceanbase cluster datafile_size configuration                                                                                                                                                                                                                                                                                                                                                                                                         |
 | OB_LOG_DISK_SIZE        | 5G                   | The oceanbase cluster log_disk_size configuration                                                                                                                                                                                                                                                                                                                                                                                                         |
-| OB_ROOT_PASSWORD        |                      | The oceanbase root user password of sys tenant                                                                                                                                                                                                                                                                                                                                                                                                            |
+| OB_SYS_PASSWORD        |                      | The oceanbase root user password of sys tenant                                                                                                                                                                                                                                                                                                                                                                                                            |
 | OB_SYSTEM_MEMORY        | 1G                   | The oceanbase cluster system_memory configuration                                                                                                                                                                                                                                                                                                                                                                                                         |
 | OB_TENANT_MINI_CPU      |                      | The oceanbase tenant mini_cpu configuration                                                                                                                                                                                                                                                                                                                                                                                                               |
 | OB_TENANT_MEMORY_SIZE   |                      | The oceanbase tenant memory_size configuration                                                                                                                                                                                                                                                                                                                                                                                                            |
@@ -104,23 +104,14 @@ You can use `-v /your/host/path:/container/path` parameter in docker `run` comma
 Below is an example.
 
 ```bash
-docker run -d -p 2881:2881 -v $PWD/ob:/root/ob -v $PWD/obd:/root/.obd --name oceanbase oceanbase/oceanbase-ce
+docker run -d -p 2881:2881 -v $PWD/ob:/root/ob -v $PWD/obd/cluster:/root/.obd/cluster --name oceanbase oceanbase/oceanbase-ce
 ```
 
 Note that you should use your own path.
 
-The docker image `oceanbase-ce` saves the data to /root/ob directory default. You should bind both the /root/ob and /root/.obd. You can not start new docker image if you only bind the /root/ob directory, because the docker image `oceanbase-ce` uses the [obd](https://github.com/oceanbase/obdeploy) to manage database clusters and there is no information about the database cluster in a new docker container.
+The docker image `oceanbase-ce` saves the data to /root/ob directory default. You should bind both the /root/ob and /root/.obd/cluster. You can not start new docker image if you only bind the /root/ob directory, because the docker image `oceanbase-ce` uses the [obd](https://github.com/oceanbase/obdeploy) to manage database clusters and there is no information about the database cluster in a new docker container.
 
 You can view more information about `docker -v` at [docker volume](https://docs.docker.com/storage/volumes/).
-
-## Fast boot image building for a standalone node
-
-The `docker_build.sh` script is provided to build the fast boot image of `oceanbase-ce`. You can execute it to:
-
-- build the image with latest version `./docker_build.sh`
-- build the image with specific version `./docker_build.sh <oceanbase_rpm_version>`. For example `./docker_build.sh 4.2.1.0-100000102023092807`
-
-After waiting for the build to be completed, you can start and test the instance in the same way as mentioned above.
 
 ## Fault Diagnosis
 
