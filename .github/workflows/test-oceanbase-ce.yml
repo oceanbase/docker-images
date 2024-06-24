@@ -69,6 +69,7 @@ jobs:
     with:
       cache_key: oceanbase-ce
       image_file: oceanbase-ce.tar
+      cluster_name: github-action
       mode: mini
       port: 1234
       sys_password: 1234567

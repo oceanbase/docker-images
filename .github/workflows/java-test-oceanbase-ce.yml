@@ -12,6 +12,10 @@ on:
       mode:
         required: true
         type: string
+      cluster_name:
+        required: false
+        type: string
+        default: 'obcluster'
       port:
         required: true
         type: string
@@ -51,6 +55,7 @@ jobs:
           image_name: oceanbase-ce
           container_name: oceanbase-ce
           mode: ${{ inputs.mode }}
+          cluster_name: ${{ inputs.cluster_name }}
           sql_port: ${{ inputs.port }}
           sys_root_password: ${{ inputs.sys_password }}
           tenant_name: ${{ inputs.test_tenant }}
@@ -81,7 +86,7 @@ jobs:
 
       - name: Test Docker container
         env:
-          cluster_name: 'github-action'
+          cluster_name: ${{ inputs.cluster_name }}
           host: '127.0.0.1'
           port: ${{ inputs.port }}
           sys_username: 'root'
