@@ -36,7 +36,7 @@ jobs:
           load: true
           tags: oceanbase-ce
           build-args: |
-            VERSION=4.2.1.7-107000162024060611
+            VERSION=4.2.3.1-101000032024061316
 
       - name: Export Docker image
         run: docker save -o oceanbase-ce.tar oceanbase-ce
