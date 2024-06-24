@@ -84,6 +84,11 @@ jobs:
           java-version: '8'
           distribution: 'zulu'
 
+      - name: Build test project
+        run: |
+          cd test
+          mvn install -DskipTests=true
+
       - name: Test Docker container
         env:
           server_ip: ${{ steps.set_server_ip.outputs.server_ip }}
