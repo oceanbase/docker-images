@@ -30,6 +30,7 @@ jobs:
           platforms: linux/amd64
           file: ./oceanbase-ce/Dockerfile
           push: false
+          load: true
           tags: oceanbase-ce
           build-args: |
             VERSION=${{ vars.TEST_OCEANBASE_VERSION }}
