@@ -146,5 +146,5 @@ else
   set_tenant_password
 fi
 
-echo "boot success"
+echo "boot success!"
 loop_forever
