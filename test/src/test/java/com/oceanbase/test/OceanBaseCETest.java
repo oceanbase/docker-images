@@ -89,6 +89,8 @@ public class OceanBaseCETest {
 
             if ("sys".equals(tenantName)) {
                 checkServerIP(conn);
+            } else {
+                Assertions.assertEquals(2, Utils.getTableRowsCount(conn, "user"));
             }
         } catch (SQLException e) {
             Assertions.fail(e);

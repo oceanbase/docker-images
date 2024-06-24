@@ -82,6 +82,14 @@ public class Utils {
                         rs -> rs.next() ? rs.getString("VALUE") : null);
     }
 
+    public static int getTableRowsCount(Connection connection, String tableName) {
+        return (int)
+                query(
+                        connection,
+                        "SELECT COUNT(1) FROM " + tableName,
+                        rs -> rs.next() ? rs.getInt(1) : 0);
+    }
+
     @FunctionalInterface
     interface ResultSetConsumer {
         Object apply(ResultSet rs) throws SQLException;

@@ -30,11 +30,11 @@ on:
       server_ip:
         required: false
         type: string
-        default: '127.0.0.1'
+        default: ''
       rs_list:
         required: false
         type: string
-        default: '127.0.0.1:2882:2881'
+        default: ''
       init_sql:
         required: false
         type: string
@@ -57,11 +57,26 @@ jobs:
         uses: oceanbase/setup-oceanbase-ce@v1
         with:
           image_name: oceanbase-ce
+          container_name: oceanbase-ce
           mode: ${{ inputs.mode }}
           sql_port: ${{ inputs.port }}
           sys_root_password: ${{ inputs.sys_password }}
           tenant_name: ${{ inputs.test_tenant }}
+          tenant_root_password: ${{ inputs.test_password }}
           init_sql: ${{ inputs.init_sql }}
+
+      - name: Set server IP
+        id: set_server_ip
+        run: |
+          if [ -z "${{ inputs.server_ip }}" ]; then
+            echo "server_ip is not set. Getting IP from container..."
+            container_ip=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' oceanbase-ce)
+            echo "Container IP is $container_ip. Setting server_ip to container IP."
+            echo "server_ip=$container_ip" >> $GITHUB_OUTPUT
+          else
+            echo "server_ip is already set to ${{ inputs.server_ip }}."
+            echo "server_ip=${{ inputs.server_ip }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -82,8 +97,8 @@ jobs:
           test_tenant: ${{ inputs.test_tenant }}
           test_username: 'root@${{ inputs.test_tenant }}'
           test_password: ${{ inputs.test_password }}
-          server_ip: ${{ inputs.server_ip }}
-          rs_list: ${{ inputs.rs_list }}
+          server_ip: ${{ steps.set_server_ip.outputs.server_ip }}
+          rs_list: ${{ steps.set_server_ip.outputs.server_ip }}:2882:2881
         run: |
           cd test
           mvn verify -Dtest=OceanBaseCETest -DfailIfNoTests=false
