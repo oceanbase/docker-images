@@ -136,15 +136,15 @@ if [ -f "/root/.obd/cluster/obcluster/config.yaml" ]; then
 elif [ "x${MODE}" == "xSLIM" ]; then
   echo "do fastboot for SLIM mode"
   fastboot
-  sleep 3
-  exec_tenant_init_sql ${OB_TENANT_INIT_SQL_DIR}
 else
   echo "do normal boot"
   boot
   create_tenant
-  exec_tenant_init_sql ${OB_TENANT_INIT_SQL_DIR}
-  set_tenant_password
 fi
+
+sleep 3
+exec_tenant_init_sql ${OB_TENANT_INIT_SQL_DIR}
+set_tenant_password
 
 echo "boot success!"
 loop_forever
