@@ -65,7 +65,7 @@ jobs:
       - name: Set server IP
         id: set_server_ip
         run: |
-          if [ ${{ inputs.mode == 'slim' }} ]; then
+          if [ "${{ inputs.mode }}" == "slim" ]; then
             echo "Use '127.0.0.1' as server_ip on slim mode."
             echo "server_ip=127.0.0.1" >> $GITHUB_OUTPUT
           else
