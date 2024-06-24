@@ -1,0 +1,102 @@
+name: java test oceanbase-ce
+
+on:
+  workflow_call:
+    inputs:
+      cache_key:
+        required: true
+        type: string
+      image_file:
+        required: true
+        type: string
+      mode:
+        required: true
+        type: string
+      cluster_name:
+        required: false
+        type: string
+        default: 'obcluster'
+      port:
+        required: true
+        type: string
+      sys_password:
+        required: false
+        type: string
+        default: ''
+      test_tenant:
+        required: false
+        type: string
+        default: 'test'
+      test_password:
+        required: false
+        type: string
+        default: ''
+      init_sql:
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  test-oceanbase-ce:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.cache_key }}
+          path: /tmp
+
+      - name: Load Docker image
+        run: docker load -i /tmp/${{ inputs.image_file }}
+
+      - name: Start Docker container
+        uses: oceanbase/setup-oceanbase-ce@v1
+        with:
+          image_name: oceanbase-ce
+          container_name: oceanbase-ce
+          mode: ${{ inputs.mode }}
+          cluster_name: ${{ inputs.cluster_name }}
+          sql_port: ${{ inputs.port }}
+          sys_root_password: ${{ inputs.sys_password }}
+          tenant_name: ${{ inputs.test_tenant }}
+          tenant_root_password: ${{ inputs.test_password }}
+          init_sql: ${{ inputs.init_sql }}
+
+      - name: Set server IP
+        id: set_server_ip
+        run: |
+          if [ "${{ inputs.mode }}" == "slim" ]; then
+            echo "Use '127.0.0.1' as server_ip on slim mode."
+            echo "server_ip=127.0.0.1" >> $GITHUB_OUTPUT
+          else
+            echo "Getting IP from container..."
+            container_ip=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' oceanbase-ce)
+            echo "Container IP is $container_ip. Setting server_ip to container IP."
+            echo "server_ip=$container_ip" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'zulu'
+
+      - name: Build test project
+        run: |
+          cd test
+          mvn install -DskipTests=true
+
+      - name: Test Docker container
+        env:
+          server_ip: ${{ steps.set_server_ip.outputs.server_ip }}
+          cluster_name: ${{ inputs.cluster_name }}
+          port: ${{ inputs.port }}
+          sys_password: ${{ inputs.sys_password }}
+          test_tenant: ${{ inputs.test_tenant }}
+          test_password: ${{ inputs.test_password }}
+        run: |
+          cd test
+          mvn verify -Dtest=OceanBaseCETest -DfailIfNoTests=false

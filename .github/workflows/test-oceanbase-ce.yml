@@ -2,13 +2,16 @@ name: test oceanbase-ce
 
 on:
   push:
-    paths:
-      - '.github/workflows/test-oceanbase-ce.yml'
-      - 'oceanbase-ce/**'
+    branches: [ main ]
   pull_request:
     paths:
-      - '.github/workflows/test-oceanbase-ce.yml'
+      - '.github/workflows/**-oceanbase-ce.yml'
       - 'oceanbase-ce/**'
+      - 'test/**'
+
+concurrency:
+  group: test-oceanbase-ce-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -48,26 +51,30 @@ jobs:
           path: oceanbase-ce.tar
 
   test-slim:
-    runs-on: ubuntu-latest
     needs: build
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: oceanbase-ce
-          path: /tmp
+    uses: ./.github/workflows/java-test-oceanbase-ce.yml
+    with:
+      cache_key: oceanbase-ce
+      image_file: oceanbase-ce.tar
+      mode: slim
+      port: 1234
+      test_password: 123456
+      init_sql: "USE test; 
+      CREATE TABLE user(id INT(10) PRIMARY KEY, name VARCHAR(20));
+      INSERT INTO user VALUES (1, 'tom'), (2, 'jerry');"
 
-      - name: Load Docker image
-        run: docker load -i /tmp/oceanbase-ce.tar
-
-      - name: Start Docker container
-        uses: oceanbase/setup-oceanbase-ce@v1
-        with:
-          image_name: oceanbase-ce
-          container_name: ob-slim
-          fastboot: false
-
-      - name: Test Docker container
-        run: |
-          docker exec ob-slim obclient -h127.0.0.1 -P2881 -uroot -e 'select version()'
-          docker exec ob-slim obclient -h127.0.0.1 -P2881 -uroot@test -e 'show databases'
+  test-mini:
+    needs: build
+    uses: ./.github/workflows/java-test-oceanbase-ce.yml
+    with:
+      cache_key: oceanbase-ce
+      image_file: oceanbase-ce.tar
+      cluster_name: github-action
+      mode: mini
+      port: 1234
+      sys_password: 1234567
+      test_tenant: mini
+      test_password: 7654321
+      init_sql: "USE test; 
+      CREATE TABLE user(id INT(10) PRIMARY KEY, name VARCHAR(20));
+      INSERT INTO user VALUES (1, 'tom'), (2, 'jerry');"
