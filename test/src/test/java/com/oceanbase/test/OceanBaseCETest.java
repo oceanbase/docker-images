@@ -33,40 +33,60 @@ public class OceanBaseCETest {
     private static final Logger LOG = LoggerFactory.getLogger(OceanBaseCETest.class);
 
     static Stream<Arguments> testOceanBaseCEArgs() {
-        String host = Utils.getNonEmptyEnv("host");
+        // non-null env vars
+        String serverIP = Utils.getNonEmptyEnv("server_ip");
+        String clusterName = Utils.getNonEmptyEnv("cluster_name");
         String port = Utils.getNonEmptyEnv("port");
-        String sysUsername = Utils.getNonEmptyEnv("sys_username");
+        String testTenant = Utils.getNonEmptyEnv("test_tenant");
+
+        // nullable env vars
         String sysPassword = System.getenv("sys_password");
-        String testTenant = Utils.getEnvOrDefault("test_tenant", "test");
-        String testUsername = Utils.getNonEmptyEnv("test_username");
         String testPassword = System.getenv("test_password");
 
         return Stream.of(
-                Arguments.of(true, host, port, "sys", sysUsername, sysPassword),
-                Arguments.of(false, host, port, "sys", sysUsername, sysPassword),
-                Arguments.of(true, host, port, testTenant, testUsername, testPassword),
-                Arguments.of(false, host, port, testTenant, testUsername, testPassword));
+                Arguments.of(true, serverIP, clusterName, port, "sys", "root", sysPassword),
+                Arguments.of(false, serverIP, clusterName, port, "sys", "root", sysPassword),
+                Arguments.of(
+                        true,
+                        serverIP,
+                        clusterName,
+                        port,
+                        testTenant,
+                        "root@" + testTenant,
+                        testPassword),
+                Arguments.of(
+                        false,
+                        serverIP,
+                        clusterName,
+                        port,
+                        testTenant,
+                        "root@" + testTenant,
+                        testPassword));
     }
 
     @ParameterizedTest
     @MethodSource("testOceanBaseCEArgs")
     public void testOceanBaseCE(
             boolean useLegacyDriver,
-            String host,
+            String serverIP,
+            String clusterName,
             String port,
             String tenantName,
             String username,
             String password) {
 
+        boolean slimMode = "127.0.0.1".equals(serverIP);
+
         LOG.info(
-                "Testing with args: [useLegacyDriver: {}, host: {}, port: {}, username: {}, password: {}]",
+                "Testing with args: [useLegacyDriver: {}, server_ip: {}, cluster_name: {}, port: {}, username: {}, password: {}]",
                 useLegacyDriver,
-                host,
+                serverIP,
+                clusterName,
                 port,
                 username,
                 password);
 
-        String jdbcUrl = String.format("jdbc:mysql://%s:%s/test?useSSL=false", host, port);
+        String jdbcUrl = String.format("jdbc:mysql://127.0.0.1:%s/test?useSSL=false", port);
 
         Properties props = new Properties();
         props.setProperty("user", username);
@@ -78,40 +98,23 @@ public class OceanBaseCETest {
         try (Connection conn = driver.connect(jdbcUrl, props)) {
             LOG.info("Connected to OceanBase CE successfully");
 
-            LOG.info("Version comment: {}", Utils.getVersionComment(conn));
+            Assertions.assertNotNull(Utils.getVersionComment(conn));
 
-            String tenant = Utils.getTenantName(conn);
-            LOG.info("Tenant name: {}", tenant);
-            Assertions.assertEquals(tenantName, tenant);
+            Assertions.assertEquals(serverIP + ":2882:2881", Utils.getRSList(conn));
+            Assertions.assertEquals(clusterName, Utils.getClusterName(conn));
+            Assertions.assertEquals(tenantName, Utils.getTenantName(conn));
 
-            checkClusterName(conn);
-            checkRSList(conn);
+            if (!slimMode) {
+                Assertions.assertNotNull(Utils.getConfigUrl(conn));
+            }
 
             if ("sys".equals(tenantName)) {
-                checkServerIP(conn);
+                Assertions.assertEquals(serverIP, Utils.getServerIP(conn));
             } else {
                 Assertions.assertEquals(2, Utils.getTableRowsCount(conn, "user"));
             }
         } catch (SQLException e) {
             Assertions.fail(e);
         }
-    }
-
-    private void checkClusterName(Connection conn) {
-        String clusterName = Utils.getClusterName(conn);
-        LOG.info("Cluster name: {}", clusterName);
-        Assertions.assertEquals(Utils.getEnvOrDefault("cluster_name", "obcluster"), clusterName);
-    }
-
-    private void checkServerIP(Connection conn) {
-        String serverIP = Utils.getServerIP(conn);
-        LOG.info("Server IP: {}", serverIP);
-        Assertions.assertEquals(Utils.getEnvOrDefault("server_ip", "127.0.0.1"), serverIP);
-    }
-
-    private void checkRSList(Connection conn) {
-        String rsList = Utils.getRSList(conn);
-        LOG.info("RS List: {}", rsList);
-        Assertions.assertEquals(Utils.getEnvOrDefault("rs_list", "127.0.0.1:2882:2881"), rsList);
     }
 }

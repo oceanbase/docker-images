@@ -24,6 +24,8 @@ import java.sql.Statement;
 
 public class Utils {
 
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(Utils.class);
+
     public static Driver getDriver(boolean legacy) {
         String className = legacy ? "com.mysql.jdbc.Driver" : "com.mysql.cj.jdbc.Driver";
         try {
@@ -50,6 +52,7 @@ public class Utils {
         return (String)
                 query(
                         connection,
+                        "version_comment",
                         "SHOW VARIABLES LIKE 'version_comment'",
                         rs -> rs.next() ? rs.getString("VALUE") : null);
     }
@@ -58,18 +61,25 @@ public class Utils {
         return (String)
                 query(
                         connection,
+                        "cluster",
                         "SHOW PARAMETERS LIKE 'cluster'",
                         rs -> rs.next() ? rs.getString("VALUE") : null);
     }
 
     public static String getTenantName(Connection connection) {
-        return (String) query(connection, "SHOW TENANT", rs -> rs.next() ? rs.getString(1) : null);
+        return (String)
+                query(
+                        connection,
+                        "tenant",
+                        "SHOW TENANT",
+                        rs -> rs.next() ? rs.getString(1) : null);
     }
 
     public static String getServerIP(Connection connection) {
         return (String)
                 query(
                         connection,
+                        "svr_ip",
                         "SELECT svr_ip FROM oceanbase.__all_server",
                         rs -> rs.next() ? rs.getString(1) : null);
     }
@@ -78,7 +88,17 @@ public class Utils {
         return (String)
                 query(
                         connection,
+                        "rootservice_list",
                         "SHOW PARAMETERS LIKE 'rootservice_list'",
+                        rs -> rs.next() ? rs.getString("VALUE") : null);
+    }
+
+    public static String getConfigUrl(Connection connection) {
+        return (String)
+                query(
+                        connection,
+                        "obconfig_url",
+                        "SHOW PARAMETERS LIKE 'obconfig_url'",
                         rs -> rs.next() ? rs.getString("VALUE") : null);
     }
 
@@ -86,6 +106,7 @@ public class Utils {
         return (int)
                 query(
                         connection,
+                        "table '" + tableName + "' rows count",
                         "SELECT COUNT(1) FROM " + tableName,
                         rs -> rs.next() ? rs.getInt(1) : 0);
     }
@@ -95,10 +116,16 @@ public class Utils {
         Object apply(ResultSet rs) throws SQLException;
     }
 
-    static Object query(Connection connection, String sql, ResultSetConsumer resultSetConsumer) {
+    static Object query(
+            Connection connection,
+            String queryName,
+            String sql,
+            ResultSetConsumer resultSetConsumer) {
         try (Statement statement = connection.createStatement()) {
             ResultSet rs = statement.executeQuery(sql);
-            return resultSetConsumer.apply(rs);
+            Object result = resultSetConsumer.apply(rs);
+            LOG.info("Query: {}, got result: {}", queryName, result);
+            return result;
         } catch (SQLException e) {
             throw new RuntimeException("Failed to execute sql: " + sql, e);
         }

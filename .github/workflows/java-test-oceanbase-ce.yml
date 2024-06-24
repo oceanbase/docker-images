@@ -86,16 +86,12 @@ jobs:
 
       - name: Test Docker container
         env:
+          server_ip: ${{ steps.set_server_ip.outputs.server_ip }}
           cluster_name: ${{ inputs.cluster_name }}
-          host: '127.0.0.1'
           port: ${{ inputs.port }}
-          sys_username: 'root'
           sys_password: ${{ inputs.sys_password }}
           test_tenant: ${{ inputs.test_tenant }}
-          test_username: 'root@${{ inputs.test_tenant }}'
           test_password: ${{ inputs.test_password }}
-          server_ip: ${{ steps.set_server_ip.outputs.server_ip }}
-          rs_list: ${{ steps.set_server_ip.outputs.server_ip }}:2882:2881
         run: |
           cd test
           mvn verify -Dtest=OceanBaseCETest -DfailIfNoTests=false
