@@ -27,14 +27,6 @@ on:
         required: false
         type: string
         default: ''
-      server_ip:
-        required: false
-        type: string
-        default: ''
-      rs_list:
-        required: false
-        type: string
-        default: ''
       init_sql:
         required: false
         type: string
@@ -68,14 +60,14 @@ jobs:
       - name: Set server IP
         id: set_server_ip
         run: |
-          if [ -z "${{ inputs.server_ip }}" ]; then
-            echo "server_ip is not set. Getting IP from container..."
+          if [ ${{ inputs.mode == 'slim' }} ]; then
+            echo "Use '127.0.0.1' as server_ip on slim mode."
+            echo "server_ip=127.0.0.1" >> $GITHUB_OUTPUT
+          else
+            echo "Getting IP from container..."
             container_ip=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' oceanbase-ce)
             echo "Container IP is $container_ip. Setting server_ip to container IP."
             echo "server_ip=$container_ip" >> $GITHUB_OUTPUT
-          else
-            echo "server_ip is already set to ${{ inputs.server_ip }}."
-            echo "server_ip=${{ inputs.server_ip }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Checkout repository

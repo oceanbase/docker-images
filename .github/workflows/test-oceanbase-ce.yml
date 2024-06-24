@@ -59,8 +59,6 @@ jobs:
       mode: slim
       port: 1234
       test_password: 123456
-      server_ip: 127.0.0.1
-      rs_list: 127.0.0.1:2882:2881
       init_sql: "USE test; 
       CREATE TABLE user(id INT(10) PRIMARY KEY, name VARCHAR(20));
       INSERT INTO user VALUES (1, 'tom'), (2, 'jerry');"
