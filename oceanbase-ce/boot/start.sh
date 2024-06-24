@@ -100,7 +100,7 @@ function boot() {
 }
 
 function create_tenant() {
-    create_tenant_cmd="obd cluster tenant create ${OB_CLUSTER_NAME} -n ${OB_TENANT_NAME} -o ${OB_SCENARIO}"
+    create_tenant_cmd="obd cluster tenant create obcluster -n ${OB_TENANT_NAME} -o ${OB_SCENARIO}"
     if ! [ -z "${OB_TENANT_MIN_CPU}" ]; then
       create_tenant_cmd="${create_tenant_cmd} --min-cpu=${OB_TENANT_MIN_CPU}"
     fi;
