@@ -36,7 +36,7 @@ jobs:
           load: true
           tags: oceanbase-ce
           build-args: |
-            VERSION=${{ vars.TEST_OCEANBASE_VERSION }}
+            VERSION=4.2.1.7-107000162024060611
 
       - name: Export Docker image
         run: docker save -o oceanbase-ce.tar oceanbase-ce
