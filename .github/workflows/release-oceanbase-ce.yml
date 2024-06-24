@@ -25,6 +25,13 @@ jobs:
           username: ${{ secrets.QUAY_IO_USERNAME }}
           password: ${{ secrets.QUAY_IO_PASSWORD }}
 
+      - name: Log in to Ghcr io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -52,5 +59,6 @@ jobs:
           tags: |
             ${{ vars.DOCKER_PUSH_BASE }}/oceanbase-ce:${{ steps.set_tag_vars.outputs.image_tag }}
             quay.io/${{ vars.QUAY_IO_PUSH_BASE }}/oceanbase-ce:${{ steps.set_tag_vars.outputs.image_tag }}
+            ghcr.io/${{ github.repository_owner }}/oceanbase-ce:${{ steps.set_tag_vars.outputs.image_tag }}
           build-args: |
             VERSION=${{ steps.set_version_vars.outputs.version }}
