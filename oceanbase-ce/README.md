@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The `oceanbase-ce` Docker image, available on [Docker Hub](https://hub.docker.com/r/oceanbase/oceanbase-ce), is designed for users to quickly set up an OceanBase environment for testing purposes.
+The `oceanbase-ce` Docker image, available on [dockerhub](https://hub.docker.com/r/oceanbase/oceanbase-ce), [quay.io](https://quay.io/repository/oceanbase/oceanbase-ce) and [ghcr.io](https://ghcr.io/oceanbase/oceanbase-ce), is designed for users to quickly set up an OceanBase environment for testing purposes.
 
 ### Key Considerations:
 - This image is intended for testing only; do not use it in production environments.
@@ -29,7 +29,8 @@ docker run -p 2881:2881 --name oceanbase-ce -e MODE=normal -d oceanbase/oceanbas
 # Deploy an instance using fastboot mode
 docker run -p 2881:2881 --name oceanbase-ce -e MODE=slim -d oceanbase/oceanbase-ce
 
-# Deploy an instance and execute init SQL scripts after bootstrap
+# Execute init SQL scripts after bootstrap, do not change root user's password in SQL scripts. 
+# If you'd like to change root user's password, use variable OB_TENANT_PASSWORD.
 docker run -p 2881:2881 --name oceanbase-ce -v {init_sql_folder_path}:/root/boot/init.d -d oceanbase/oceanbase-ce
 ```
 
@@ -48,13 +49,6 @@ boot success!
 ***Note***:
 - Users created in the instance via script use empty passwords by default.
 - The default general non-sys tenant is 'test', so 'root@test' is used as the username.
-
-The oceanbase-ce image includes obclient (OceanBase Database Client) and a default connection script ob-mysql. Use the following commands to connect to the OceanBase cluster:
-```
-docker exec -it oceanbase-ce ob-mysql sys   # Connect with the root account of sys tenant
-docker exec -it oceanbase-ce ob-mysql root  # Connect with the root account of a general tenant
-docker exec -it oceanbase-ce ob-mysql test  # Connect with the test account of a general tenant
-```
 
 For local connections using obclient or mysql client:
 ```
@@ -75,6 +69,7 @@ Below is a table of supported environment variables for the image:
 | OB_DATAFILE_SIZE        | 5G                   | The oceanbase cluster datafile_size configuration                                                                                                                                                                                                                                                                                                                                                                                                         |
 | OB_LOG_DISK_SIZE        | 5G                   | The oceanbase cluster log_disk_size configuration                                                                                                                                                                                                                                                                                                                                                                                                         |
 | OB_SYS_PASSWORD         |                      | The oceanbase root user password of sys tenant                                                                                                                                                                                                                                                                                                                                                                                                            |
+| OB_TENANT_PASSWORD      |                      | The oceanbase root user password of mysql tenant                                                                                                                                                                                                                                                                                                                                                                                                          |
 | OB_SYSTEM_MEMORY        | 1G                   | The oceanbase cluster system_memory configuration                                                                                                                                                                                                                                                                                                                                                                                                         |
 | OB_TENANT_MINI_CPU      |                      | The oceanbase tenant mini_cpu configuration                                                                                                                                                                                                                                                                                                                                                                                                               |
 | OB_TENANT_MEMORY_SIZE   |                      | The oceanbase tenant memory_size configuration                                                                                                                                                                                                                                                                                                                                                                                                            |
