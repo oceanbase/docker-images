@@ -1,70 +1,69 @@
-# How to deploy OceanBase with docker
+# Deploy OceanBase with Docker
 
-## About
-[oceanbase-ce](https://hub.docker.com/r/oceanbase/oceanbase-ce) is a test image for users to quickly setup an OceanBase environment. 
+## Introduction
 
-Before proceeding to the next step, please be aware of the following considerations:
-- This image is for test purpose, so don't use it for production;
-- This image only supports to setup single instance cluster;
-- This image is not to run on Kubernetes, if you have the need to run containerized OceanBase on Kubernetes, please checkout [ob-operator](https://github.com/oceanbase/ob-operator) for detail.
+The `oceanbase-ce` Docker image, available on [Docker Hub](https://hub.docker.com/r/oceanbase/oceanbase-ce), is designed for users to quickly set up an OceanBase environment for testing purposes.
 
-## Prerequisite
+### Key Considerations:
+- This image is intended for testing only; do not use it in production environments.
+- The image supports the setup of a single-instance cluster only.
+- This image is not designed for Kubernetes. For running containerized OceanBase on Kubernetes, refer to the [ob-operator](https://github.com/oceanbase/ob-operator) repository.
 
-Before you start to deploy `oceanbase-ce`, please make sure the following requirements are met:
+## Prerequisites
 
-- Make sure that your machine has enough resource that can provide least 2 physical cores and 8GB memory.
-- Your machine has installed and started [Docker](https://docs.docker.com/get-docker/).
+Before deploying `oceanbase-ce`, ensure that the following requirements are met:
+- The host machine should have at least 2 physical cores and 8GB of memory.
+- Docker should be installed and running on the host machine. Refer to the [Docker installation guide](https://docs.docker.com/get-docker/).
 
-## Start an OceanBase instance
+## Starting an OceanBase Instance
 
-To start an OceanBase instance, run the following command:
+To start an OceanBase instance, use one of the following `docker run` commands:
 
 ```bash
-# deploy mini mode instance
+# Deploy a mini mode instance
 docker run -p 2881:2881 --name oceanbase-ce -d oceanbase/oceanbase-ce
 
-# deploy an instance to use the full resource of container
+# Deploy an instance to utilize the full resource of the container
 docker run -p 2881:2881 --name oceanbase-ce -e MODE=normal -d oceanbase/oceanbase-ce
 
-# deploy an instance using fastboot mode
+# Deploy an instance using fastboot mode
 docker run -p 2881:2881 --name oceanbase-ce -e MODE=slim -d oceanbase/oceanbase-ce
 
-# deploy an instance and execute init sqls after bootstrap
+# Deploy an instance and execute init SQL scripts after bootstrap
 docker run -p 2881:2881 --name oceanbase-ce -v {init_sql_folder_path}:/root/boot/init.d -d oceanbase/oceanbase-ce
-
 ```
 
-The bootstrap procedure will take up to five minutes. You may run the following command to confirm the bootstrap procedure has successfully been done.
+The bootstrap procedure may take up to five minutes. Verify the bootstrap completion by running:
 
-```bash
-$ docker logs oceanbase-ce | tail -1
+```
+docker logs oceanbase-ce | tail -1
+```
+
+Expected output:
+```
 boot success!
 ```
 
-## Connect to an OceanBase instance
+## Connecting to OceanBase Instance
+***Note***:
+- Users created in the instance via script use empty passwords by default.
+- The default general non-sys tenant is 'test', so 'root@test' is used as the username.
 
-The `oceanbase-ce` image contains `obclient` (OceanBase Database Client) and the default connection script `ob-mysql`. You may refer to the following commands to connect to OceanBase cluster.
-
-```bash
-docker exec -it oceanbase-ce ob-mysql sys # Connect with the root account of sys tenant
-docker exec -it oceanbase-ce ob-mysql root # Connect with the root account of a general tenant
-docker exec -it oceanbase-ce ob-mysql test # Connect with the test account of a general tenant
+The oceanbase-ce image includes obclient (OceanBase Database Client) and a default connection script ob-mysql. Use the following commands to connect to the OceanBase cluster:
+```
+docker exec -it oceanbase-ce ob-mysql sys   # Connect with the root account of sys tenant
+docker exec -it oceanbase-ce ob-mysql root  # Connect with the root account of a general tenant
+docker exec -it oceanbase-ce ob-mysql test  # Connect with the test account of a general tenant
 ```
 
-Or you can use the following command if your'd like to connect with your local `obclient` or `mysql` client directly.
-
-Note: 
-- The users created by script in the instance uses empty password by default.
-- The general non-sys tenant is 'test' by default, so here we use 'root@test' as usernames.
-
-```bash
-mysql -h127.0.0.1 -P2881 -uroot  # Connect with the root account of sys tenant
+For local connections using obclient or mysql client:
+```
+mysql -h127.0.0.1 -P2881 -uroot       # Connect with the root account of sys tenant
 mysql -h127.0.0.1 -P2881 -uroot@test  # Connect with the root account of a general tenant
 ```
 
-## Supported environment variables
-
-This table shows the supported environment variables of the image:
+## Supported Environment Variables
+Below is a table of supported environment variables for the image:
 
 | Variable name           | Default value        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 |-------------------------|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -80,28 +79,20 @@ This table shows the supported environment variables of the image:
 | OB_TENANT_MINI_CPU      |                      | The oceanbase tenant mini_cpu configuration                                                                                                                                                                                                                                                                                                                                                                                                               |
 | OB_TENANT_MEMORY_SIZE   |                      | The oceanbase tenant memory_size configuration                                                                                                                                                                                                                                                                                                                                                                                                            |
 | OB_TENANT_LOG_DISK_SIZE |                      | The oceanbase tenant log_disk_size configuration                                                                                                                                                                                                                                                                                                                                                                                                          |
-
-## Run the Sysbench script
-
-`oceanbase-ce` image ships with a `sysbench` tool configured to run along with obd. You may run the following command to do a `sysbench` test.
-
-```bash
+## Running Sysbench Script
+The oceanbase-ce image includes the sysbench tool for benchmarking. Use the following command to run a sysbench test:
+```
 docker exec -it oceanbase-ce obd test sysbench obcluster
 ```
 
-## Data safety
+## Data Persistence
+By default, oceanbase-ce deploys OceanBase under /root/ob and saves its configurations under /root/.obd/cluster. Use the following command to persist data on the host:
 
-`oceanbase-ce` deploys oceanbase under directory `/root/ob` and obd saves the configurations of oceanbase cluster under `/root/.obd/cluster` directory, you can mount directories on the host to `/root/ob` and `/root/.obd/cluster` to persist the data on host.
-The example command is as follows
-
-```bash
+```
 mkdir -p ob
 mkdir -p obd/cluster
 docker run -d -p 2881:2881 -v $PWD/ob:/root/ob -v $PWD/obd/cluster:/root/.obd/cluster --name oceanbase oceanbase/oceanbase-ce
 ```
 
 ## Fault Diagnosis
-A series of diagnostic methods are provided to diagnose errors in Docker.
-
-### Support for 'enable_rich_error_msg' parameter
-Initially, the 'enable_rich_error_msg' parameter is enabled by default during the Docker startup process. If an error occurs during the startup process, rich error information can be obtained using the trace command.
+The enable_rich_error_msg parameter is enabled by default during Docker startup. If an error occurs, you can obtain detailed error information using the trace command.
