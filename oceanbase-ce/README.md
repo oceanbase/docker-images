@@ -1,47 +1,40 @@
 # How to deploy OceanBase with docker
 
-OceanBase provide a standalone test image named [oceanbase-ce](https://hub.docker.com/r/oceanbase/oceanbase-ce) for OceanBase Database. By default, this image deploys a MINI_MODE OceanBase instance.
+## About
+[oceanbase-ce](https://hub.docker.com/r/oceanbase/oceanbase-ce) is a test image for users to quickly setup an OceanBase environment. 
 
-**WARNING**
-
-- The `oceanbase-ce` docker image is just used for study or test;
-- Please use [ob-operator](https://github.com/oceanbase/ob-operator) instead if you want to deploy OceanBase on Kubernetes;
-- You should not deploy it with important data as it is not designed to use in production environment.
-
-Reasons:
-
-1. The cluster contains only one instance, so there is no disaster tolerant ability;
-2. It is very difficult to recover after failure because docker container cannot be started if the OceanBase instance started failed, which means you may lost the container and the data in it;
-3. K8s can not restart a new pod because the container still exists after the observer process quit.
+Before proceeding to the next step, please be aware of the following considerations:
+- This image is for test purpose, so don't use it for production;
+- This image only supports to setup single instance cluster;
+- This image is not to run on Kubernetes, if you have the need to run containerized OceanBase on Kubernetes, please checkout [ob-operator](https://github.com/oceanbase/ob-operator) for detail.
 
 ## Prerequisite
 
-Before you deploy `oceanbase-ce`, please do the following checks:
+Before you start to deploy `oceanbase-ce`, please make sure the following requirements are met:
 
-- Make sure that your machine has enough resource that can execute at least 2 physical cores and 8GB memory.
-- Your machine has installed the latest [Docker](https://docs.docker.com/get-docker/).
-- You have started the Docker service on your machine.
+- Make sure that your machine has enough resource that can provide least 2 physical cores and 8GB memory.
+- Your machine has installed and started [Docker](https://docs.docker.com/get-docker/).
 
 ## Start an OceanBase instance
 
-To start an OceanBase instance, run this command:
+To start an OceanBase instance, run the following command:
 
 ```bash
-# deploy mini instance
+# deploy mini mode instance
 docker run -p 2881:2881 --name oceanbase-ce -d oceanbase/oceanbase-ce
 
-# deploy an instance of the largest size according to the current container
+# deploy an instance to use the full resource of container
 docker run -p 2881:2881 --name oceanbase-ce -e MODE=normal -d oceanbase/oceanbase-ce
 
-# deploy a quick-start instance in any mode as desired to the current container
+# deploy an instance using fastboot mode
 docker run -p 2881:2881 --name oceanbase-ce -e MODE=slim -d oceanbase/oceanbase-ce
 
-# deploy an instance and execute init sqls
+# deploy an instance and execute init sqls after bootstrap
 docker run -p 2881:2881 --name oceanbase-ce -v {init_sql_folder_path}:/root/boot/init.d -d oceanbase/oceanbase-ce
 
 ```
 
-Up to five minutes are necessary for the boot procedure. To make sure that the boot procedure is successful, run this command:
+The bootstrap procedure will take up to five minutes. You may run the following command to confirm the bootstrap procedure has successfully been done.
 
 ```bash
 $ docker logs oceanbase-ce | tail -1
@@ -50,7 +43,7 @@ boot success!
 
 ## Connect to an OceanBase instance
 
-The `oceanbase-ce` image contains `obclient` (OceanBase Database Client) and the default connection script `ob-mysql`.
+The `oceanbase-ce` image contains `obclient` (OceanBase Database Client) and the default connection script `ob-mysql`. You may refer to the following commands to connect to OceanBase cluster.
 
 ```bash
 docker exec -it oceanbase-ce ob-mysql sys # Connect with the root account of sys tenant
@@ -58,32 +51,31 @@ docker exec -it oceanbase-ce ob-mysql root # Connect with the root account of a 
 docker exec -it oceanbase-ce ob-mysql test # Connect with the test account of a general tenant
 ```
 
-Or you can run the following command to connect to the OceanBase instance with your local `obclient` or MySQL client directly.
+Or you can use the following command if your'd like to connect with your local `obclient` or `mysql` client directly.
 
 Note: 
 - The users created by script in the instance uses empty password by default.
-- The general non-sys tenant is 'test' by default, so here we use 'root@test' and 'test@test' as usernames.
+- The general non-sys tenant is 'test' by default, so here we use 'root@test' as usernames.
 
 ```bash
 mysql -h127.0.0.1 -P2881 -uroot  # Connect with the root account of sys tenant
 mysql -h127.0.0.1 -P2881 -uroot@test  # Connect with the root account of a general tenant
-mysql -h127.0.0.1 -P2881 -utest@test  # Connect with the test account of a general tenant
 ```
 
 ## Supported environment variables
 
-This table shows the supported environment variables of the current oceanbase-ce mirror version:
+This table shows the supported environment variables of the image:
 
 | Variable name           | Default value        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 |-------------------------|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| MODE                    | {mini, slim, normal} | If it is mini, then the docker use mini mode to deploy OceanBase Database instance, it should be used only for research/study/evaluation.  DO NOT use it for production or performance testing. If it is slim, then the container starts in quick start mode. It remove the obagent and ob-configserver. |
-| EXIT_WHILE_ERROR        | true                 | Whether quit the container while start observer failed. If start observer failed, you can not explore the logs as the container will exit. But if you set the EXIT_WHILE_ERROR=false, the container will not exit while observer starting fail and you can use docker exec to debug.                                                                                                                                                                      |
+| MODE                    | {mini, slim, normal} | mini indicates that the container will use the least amount of resource, normal indicates that the container will use as much as possible of the container resource, and slim indicates that the container will only start observer and using fastboot mode.                                                                                                                                                                                              |
+| EXIT_WHILE_ERROR        | true                 | Whether quit the container when failed to start observer. if you set EXIT_WHILE_ERROR=false, the container will not exit and you can use log into the container for debugging.                                                                                                                                                                                                                                                                            |
 | OB_CLUSTER_NAME         | obcluster            | The oceanbase cluster name                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | OB_TENANT_NAME          | test                 | The oceanbase mysql tenant name                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | OB_MEMORY_LIMIT         | 6G                   | The oceanbase cluster memory_limit configuration                                                                                                                                                                                                                                                                                                                                                                                                          |
 | OB_DATAFILE_SIZE        | 5G                   | The oceanbase cluster datafile_size configuration                                                                                                                                                                                                                                                                                                                                                                                                         |
 | OB_LOG_DISK_SIZE        | 5G                   | The oceanbase cluster log_disk_size configuration                                                                                                                                                                                                                                                                                                                                                                                                         |
-| OB_SYS_PASSWORD        |                      | The oceanbase root user password of sys tenant                                                                                                                                                                                                                                                                                                                                                                                                            |
+| OB_SYS_PASSWORD         |                      | The oceanbase root user password of sys tenant                                                                                                                                                                                                                                                                                                                                                                                                            |
 | OB_SYSTEM_MEMORY        | 1G                   | The oceanbase cluster system_memory configuration                                                                                                                                                                                                                                                                                                                                                                                                         |
 | OB_TENANT_MINI_CPU      |                      | The oceanbase tenant mini_cpu configuration                                                                                                                                                                                                                                                                                                                                                                                                               |
 | OB_TENANT_MEMORY_SIZE   |                      | The oceanbase tenant memory_size configuration                                                                                                                                                                                                                                                                                                                                                                                                            |
@@ -91,37 +83,25 @@ This table shows the supported environment variables of the current oceanbase-ce
 
 ## Run the Sysbench script
 
-`oceanbase-ce` image installs the Sysbench tool by default. And the Sysbench tool is configured. You can run these commands in sequence to run the Sysbench script with the default configurations.
+`oceanbase-ce` image ships with a `sysbench` tool configured to run along with obd. You may run the following command to do a `sysbench` test.
 
 ```bash
 docker exec -it oceanbase-ce obd test sysbench obcluster
 ```
 
-## Mount Volume
+## Data safety
 
-You can use `-v /your/host/path:/container/path` parameter in docker `run` command to save data in host os if you want to persistence the data of a container.
-
-Below is an example.
+`oceanbase-ce` deploys oceanbase under directory `/root/ob` and obd saves the configurations of oceanbase cluster under `/root/.obd/cluster` directory, you can mount directories on the host to `/root/ob` and `/root/.obd/cluster` to persist the data on host.
+The example command is as follows
 
 ```bash
+mkdir -p ob
+mkdir -p obd/cluster
 docker run -d -p 2881:2881 -v $PWD/ob:/root/ob -v $PWD/obd/cluster:/root/.obd/cluster --name oceanbase oceanbase/oceanbase-ce
 ```
 
-Note that you should use your own path.
-
-The docker image `oceanbase-ce` saves the data to /root/ob directory default. You should bind both the /root/ob and /root/.obd/cluster. You can not start new docker image if you only bind the /root/ob directory, because the docker image `oceanbase-ce` uses the [obd](https://github.com/oceanbase/obdeploy) to manage database clusters and there is no information about the database cluster in a new docker container.
-
-You can view more information about `docker -v` at [docker volume](https://docs.docker.com/storage/volumes/).
-
 ## Fault Diagnosis
-
 A series of diagnostic methods are provided to diagnose errors in Docker.
 
 ### Support for 'enable_rich_error_msg' parameter
-
-- Initially, the 'enable_rich_error_msg' parameter is enabled by default during the Docker startup process. If an error occurs during the startup process, more error information can be obtained using the trace command. After a successful startup, Docker sets this parameter to the false state.
-- Users can open this parameter to obtain more error information about SQL statements during the runtime phase. To open it is, you should connect to the system tenant of OceanBase instance, and then execute the following command:
-
-    ```sql
-    alter system set enable_rich_error_msg = true;
-    ```
+Initially, the 'enable_rich_error_msg' parameter is enabled by default during the Docker startup process. If an error occurs during the startup process, rich error information can be obtained using the trace command.
