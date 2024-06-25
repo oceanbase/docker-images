@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "oceanbase-*"
+      - "lts-oceanbase-*"
 
 env:
   tagName: ${{ github.ref_name }}
