@@ -17,7 +17,7 @@ jobs:
   build:
     uses: ./.github/workflows/build-oceanbase-ce.yml
     with:
-      cache_key: oceanbase-ce
+      cache_key: test-oceanbase-ce
       image_file: oceanbase-ce.tar
       version: 4.2.3.1-101000032024061316
 
@@ -25,7 +25,7 @@ jobs:
     needs: build
     uses: ./.github/workflows/java-test-oceanbase-ce.yml
     with:
-      cache_key: oceanbase-ce
+      cache_key: test-oceanbase-ce
       image_file: oceanbase-ce.tar
       mode: slim
       port: 1234
@@ -38,7 +38,7 @@ jobs:
     needs: build
     uses: ./.github/workflows/java-test-oceanbase-ce.yml
     with:
-      cache_key: oceanbase-ce
+      cache_key: test-oceanbase-ce
       image_file: oceanbase-ce.tar
       cluster_name: github-action
       mode: mini
