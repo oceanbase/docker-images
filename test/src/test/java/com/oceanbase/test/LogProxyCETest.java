@@ -192,6 +192,13 @@ public class LogProxyCETest {
         Assertions.assertEquals("1", fieldMap.get("id"));
         Assertions.assertEquals("meat", fieldMap.get("name"));
 
+        try (Connection conn = driver.connect("jdbc:mysql://" + observerIP + ":2881/test", props);
+                Statement statement = conn.createStatement()) {
+            statement.execute("DROP TABLE t_product");
+        } catch (SQLException e) {
+            Assertions.fail(e);
+        }
+
         client.stop();
     }
 }
