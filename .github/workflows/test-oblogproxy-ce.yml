@@ -3,12 +3,14 @@ name: test oblogproxy-ce
 on:
   pull_request:
     paths:
-      - '!**/*.md'
       - '.github/workflows/**-oblogproxy-ce.yml'
-      - '.github/workflows/**-oceanbase-ce.yml'
-      - 'oblogproxy-ce/**'
-      - 'oceanbase-ce/**'
-      - 'test/**'
+      - '.github/workflows/build-oceanbase-ce.yml'
+      - 'oblogproxy-ce/Dockerfile'
+      - 'oblogproxy-ce/**.sh'
+      - 'oceanbase-ce/Dockerfile'
+      - 'oceanbase-ce/**.sh'
+      - 'oceanbase-ce/**.yaml'
+      - 'test/**/LogProxyCETest.java'
 
 concurrency:
   group: test-oblogproxy-ce-${{ github.event.pull_request.number || github.ref }}
