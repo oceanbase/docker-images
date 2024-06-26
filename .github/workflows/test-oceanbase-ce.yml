@@ -3,10 +3,11 @@ name: test oceanbase-ce
 on:
   pull_request:
     paths:
-      - '!**/*.md'
       - '.github/workflows/**-oceanbase-ce.yml'
-      - 'oceanbase-ce/**'
-      - 'test/**'
+      - 'oceanbase-ce/Dockerfile'
+      - 'oceanbase-ce/**.sh'
+      - 'oceanbase-ce/**.yaml'
+      - 'test/**/OceanBaseCETest.java'
 
 concurrency:
   group: test-oceanbase-ce-${{ github.event.pull_request.number || github.ref }}
