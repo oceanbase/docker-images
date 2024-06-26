@@ -43,11 +43,6 @@ public class Utils {
         return value;
     }
 
-    public static String getEnvOrDefault(String name, String defaultValue) {
-        String env = System.getenv(name);
-        return env == null ? defaultValue : env;
-    }
-
     public static String getVersionComment(Connection connection) {
         return (String)
                 query(
