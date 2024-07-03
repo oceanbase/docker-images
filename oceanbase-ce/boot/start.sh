@@ -88,7 +88,7 @@ function wait_tenant_connectable() {
 }
 
 function check_tenant_connectable() {
-	obclient -h127.1 -uroot@test -P2881 -e "show databases"
+	obclient -h127.1 -uroot@${OB_TENANT_NAME} -P2881 -e "show databases"
 	return $?
 }
 
