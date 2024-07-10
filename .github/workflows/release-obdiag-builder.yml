@@ -3,7 +3,7 @@ name: release obdiag-builder
 on: 
   push:
     tags: 
-      - "obdiag-builder-*"
+      - "obdiag-builder*"
 
 env:
   tagName: ${{ github.ref_name }}
