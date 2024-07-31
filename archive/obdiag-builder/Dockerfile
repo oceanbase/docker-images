@@ -9,4 +9,3 @@ RUN /opt/miniconda3/bin/conda init
 RUN /opt/miniconda3/bin/conda create --name obdiag python=3.8 -y
 RUN source /opt/miniconda3/bin/activate obdiag
 RUN /opt/miniconda3/envs/obdiag/bin/python3.8  -m pip install --upgrade pip setuptools wheel
-
