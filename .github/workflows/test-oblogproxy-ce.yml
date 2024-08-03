@@ -50,7 +50,9 @@ jobs:
           tags: oblogproxy-ce
 
       - name: Export Docker image
-        run: docker save -o oblogproxy-ce.tar oblogproxy-ce
+        run: |
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          docker save -o oblogproxy-ce.tar oblogproxy-ce
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
