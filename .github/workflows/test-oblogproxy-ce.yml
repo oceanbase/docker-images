@@ -22,11 +22,14 @@ jobs:
     with:
       cache_key: test-oblogproxy-ce_oceanbase-ce
       image_file: oceanbase-ce.tar
-      version: 4.2.1.6-106000012024042515
+      version: 4.2.1.8-108000022024072217
 
   build-oblogproxy-ce:
     runs-on: ubuntu-latest
     steps:
+      - name: Clean tool cache
+        run: sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
       - name: Print environment variables
         run: printenv
 
@@ -48,8 +51,6 @@ jobs:
           push: false
           load: true
           tags: oblogproxy-ce
-          build-args: |
-            VERSION=2.0.2-100000012024060321
 
       - name: Export Docker image
         run: docker save -o oblogproxy-ce.tar oblogproxy-ce
@@ -64,6 +65,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ build-oceanbase-ce, build-oblogproxy-ce ]
     steps:
+      - name: Clean tool cache
+        run: sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
