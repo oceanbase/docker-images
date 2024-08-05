@@ -100,7 +100,6 @@ function fastboot() {
 function boot() {
 	# generate config based on variables
 	envsubst <templates/observer-template.yaml >/tmp/config.yaml
-	envsubst <templates/obagent-template.yaml >>/tmp/config.yaml
 	envsubst <templates/ob-configserver-template.yaml >>/tmp/config.yaml
 	obd cluster deploy obcluster -c /tmp/config.yaml
 	if [ $? -ne 0 ]; then
