@@ -5,13 +5,6 @@ oceanbase-ce:
     - 127.0.0.1
   global:
     home_path: /root/ob
-obagent:
-  servers:
-    - 127.0.0.1
-  depends:
-    - oceanbase-ce
-  global:
-    home_path: /root/obagent
 ob-configserver:
   servers:
     - 127.0.0.1

@@ -14,7 +14,7 @@ RUN yum install -y yum-utils && \
     yum clean all
 
 # download and clone all the required packages
-RUN yum install -y --downloadonly --downloaddir=/root/pkgs oceanbase-ce-${VERSION}.el7 oceanbase-ce-libs-${VERSION}.el7 obagent ob-configserver
+RUN yum install -y --downloadonly --downloaddir=/root/pkgs oceanbase-ce-${VERSION}.el7 oceanbase-ce-libs-${VERSION}.el7 ob-configserver
 RUN obd mirror clone /root/pkgs/*.rpm
 RUN obd env set IO_DEFAULT_CONFIRM 1
 RUN obd mirror disable remote
