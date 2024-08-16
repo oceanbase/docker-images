@@ -17,6 +17,16 @@ jobs:
   build-oceanbase-ce:
     runs-on: ubuntu-latest
     steps:
+      - name: Free disk space on Ubuntu runner
+        uses: kfir4444/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
+
       - name: Print environment variables
         run: printenv
 
