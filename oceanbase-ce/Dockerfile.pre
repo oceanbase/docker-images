@@ -1,0 +1,28 @@
+FROM openanolis/anolisos
+
+ARG VERSION
+
+WORKDIR /root
+
+RUN mkdir -p pkgs
+
+RUN yum install -y yum-utils && \
+    yum-config-manager --add-repo http://mirrors.oceanbase.com/oceanbase/OceanBase.repo && \
+    yum install -y ob-deploy && \
+    yum clean all
+
+ADD build/demo.yaml /root/
+# download and clone all the required packages
+RUN yum install -y --downloadonly --downloaddir=/root/pkgs oceanbase-ce-${VERSION}.el8 oceanbase-ce-libs-${VERSION}.el8
+RUN obd mirror clone /root/pkgs/*.rpm
+RUN obd env set IO_DEFAULT_CONFIRM 1
+RUN obd mirror disable remote
+RUN obd cluster deploy demo -c /root/demo.yaml
+RUN obd cluster start demo -v && obd cluster tenant create demo -n test -o express_oltp -v
+RUN obd cluster stop demo
+RUN sed -i "s/\s\+hash:.*//g" /root/.obd/cluster/demo/.data
+
+RUN cd /root/demo && tar -cvzf store.tar.gz store
+RUN cd /root/demo && tar -cvzf etc.tar.gz etc
+
+ENTRYPOINT ["bash", "-c", "cp /root/demo/*.tar.gz /root/share && cp -r /root/.obd/cluster /root/share"]
