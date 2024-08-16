@@ -31,8 +31,6 @@ RUN yum install -y yum-utils && \
     yum install -y ob-deploy obclient ob-sysbench gettext ncurses-compat-libs openssh-server && \
     yum clean all
 
-RUN yum install -y --downloadonly --downloaddir=/tmp ob-configserver && obd mirror clone /tmp/*.rpm && rm -rf /tmp/*.rpm
-
 RUN obd env set IO_DEFAULT_CONFIRM 1
 RUN obd mirror disable remote
 
@@ -45,6 +43,9 @@ RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 
 COPY --from=builder /root/demo /root/demo
 COPY --from=builder /root/.obd /root/.obd
+
+RUN yum install -y --downloadonly --downloaddir=/tmp ob-configserver && obd mirror clone /tmp/*.rpm && rm -rf /tmp/*.rpm
+
 COPY boot /root/boot
 COPY templates /root/templates
 COPY share/cluster /root/.obd/cluster
