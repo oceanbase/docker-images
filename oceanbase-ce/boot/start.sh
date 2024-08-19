@@ -156,7 +156,6 @@ else
 	fi
 	if wait_tenant_connectable; then
 		echo "tenant is connectable"
-		sleep 10
 		exec_tenant_init_sql ${OB_TENANT_INIT_SQL_DIR}
 		set_tenant_password
 	else
