@@ -3,8 +3,9 @@ name: release oceanbase-cloud-native
 on:
   push:
     tags:
-      - "oceanbase-*"
-      - "lts-oceanbase-*"
+      - "oceanbase-cloud-native-(\d+\.\d+\.\d+\.\d+)-(\d{18})"
+      - "oceanbase-(\d+\.\d+\.\d+\.\d+)-(\d{18})"
+      - "lts-oceanbase-(\d+\.\d+\.\d+\.\d+)-(\d{18})"
 
 env:
   tagName: ${{ github.ref_name }}
