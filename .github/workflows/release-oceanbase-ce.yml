@@ -3,8 +3,8 @@ name: release oceanbase-ce
 on:
   push:
     tags:
-      - "oceanbase-ce-\d+\.\d+\.\d+\.\d+-\d{18}"
-      - "oceanbase-\d+\.\d+\.\d+\.\d+-\d{18}"
+      - "oceanbase-ce-[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]{18}"
+      - "oceanbase-[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]{18}"
 
 env:
   tagName: ${{ github.ref_name }}
