@@ -40,16 +40,6 @@ jobs:
   test-oceanbase-ce:
     runs-on: ubuntu-latest
     steps:
-      - name: Free disk space on Ubuntu runner
-        uses: kfir4444/free-disk-space@main
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          swap-storage: true
-
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
@@ -57,7 +47,9 @@ jobs:
           path: /tmp
 
       - name: Load Docker image
-        run: docker load -i /tmp/${{ inputs.image_file }}
+        run: |
+          docker load -i /tmp/${{ inputs.image_file }}
+          rm -rf /tmp/*
 
       - name: Start Docker container
         uses: oceanbase/setup-oceanbase-ce@v1
