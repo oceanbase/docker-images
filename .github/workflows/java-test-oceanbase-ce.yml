@@ -49,7 +49,7 @@ jobs:
       - name: Load Docker image
         run: |
           docker load -i /tmp/${{ inputs.image_file }}
-          rm -rf /tmp/*
+          rm -f /tmp/${{ inputs.image_file }}
 
       - name: Start Docker container
         uses: oceanbase/setup-oceanbase-ce@v1
