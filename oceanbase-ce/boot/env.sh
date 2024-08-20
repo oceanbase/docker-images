@@ -6,8 +6,8 @@ export OB_CLUSTER_NAME=${OB_CLUSTER_NAME:-obcluster}
 if [ "x${MODE^^}" == "xMINI" ]; then
     export OB_MEMORY_LIMIT=${OB_MEMORY_LIMIT:-6G}
     export OB_SYSTEM_MEMORY=${OB_SYSTEM_MEMORY:-1G}
-    export OB_DATAFILE_SIZE=${OB_DATAFILE_SIZE:-2G}
-    export OB_LOG_DISK_SIZE=${OB_LOG_DISK_SIZE:-4G}
+    export OB_DATAFILE_SIZE=${OB_DATAFILE_SIZE:-5G}
+    export OB_LOG_DISK_SIZE=${OB_LOG_DISK_SIZE:-5G}
     export OB_SCENARIO=${OB_SCENARIO:-express_oltp}
 else 
     export OB_DATAFILE_SIZE=${OB_DATAFILE_SIZE:-20G}
