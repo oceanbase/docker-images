@@ -122,6 +122,7 @@ function create_tenant() {
 	if ! [ -z "${OB_TENANT_LOG_DISK_SIZE}" ]; then
 		create_tenant_cmd="${create_tenant_cmd} --log-disk-size=${OB_TENANT_LOG_DISK_SIZE}"
 	fi
+	echo "${create_tenant_cmd}"
 	eval ${create_tenant_cmd}
 	if [ $? -ne 0 ]; then
 		deploy_failed

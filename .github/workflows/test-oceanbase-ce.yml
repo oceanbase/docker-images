@@ -19,7 +19,7 @@ jobs:
     with:
       cache_key: test-oceanbase-ce
       image_file: oceanbase-ce.tar
-      version: 4.3.2.0-100000092024072912
+      version: 4.2.1.8-108000022024072217
 
   test-slim:
     needs: build
