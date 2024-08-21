@@ -3,10 +3,8 @@ name: test oceanbase-ce
 on:
   pull_request:
     paths:
-      - '.github/workflows/**-oceanbase-ce.yml'
-      - 'oceanbase-ce/Dockerfile'
-      - 'oceanbase-ce/**.sh'
-      - 'oceanbase-ce/**.yaml'
+      - '.github/workflows/*oceanbase-ce*.yml'
+      - 'oceanbase-ce/**'
       - 'test/**/OceanBaseCETest.java'
 
 concurrency:
@@ -14,38 +12,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    uses: ./.github/workflows/build-oceanbase-ce.yml
+  build-and-test:
+    uses: ./.github/workflows/reusable-build-and-test-oceanbase-ce.yml
     with:
       cache_key: test-oceanbase-ce
-      image_file: oceanbase-ce.tar
       version: 4.3.2.0-100000092024072912
-
-  test-slim:
-    needs: build
-    uses: ./.github/workflows/java-test-oceanbase-ce.yml
-    with:
-      cache_key: test-oceanbase-ce
-      image_file: oceanbase-ce.tar
-      mode: slim
-      port: 1234
-      test_password: 123456
-      init_sql: "USE test; 
-      CREATE TABLE user(id INT(10) PRIMARY KEY, name VARCHAR(20));
-      INSERT INTO user VALUES (1, 'tom'), (2, 'jerry');"
-
-  test-mini:
-    needs: build
-    uses: ./.github/workflows/java-test-oceanbase-ce.yml
-    with:
-      cache_key: test-oceanbase-ce
-      image_file: oceanbase-ce.tar
-      cluster_name: github-action
-      mode: mini
-      port: 1234
-      sys_password: 1234567
-      test_tenant: mini
-      test_password: 7654321
-      init_sql: "USE test; 
-      CREATE TABLE user(id INT(10) PRIMARY KEY, name VARCHAR(20));
-      INSERT INTO user VALUES (1, 'tom'), (2, 'jerry');"

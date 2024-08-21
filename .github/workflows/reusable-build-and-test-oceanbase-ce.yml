@@ -1,0 +1,47 @@
+name: build and test oceanbase-ce
+
+on:
+  workflow_call:
+    inputs:
+      cache_key:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+
+jobs:
+  build:
+    uses: ./.github/workflows/reusable-build-and-release-oceanbase-ce.yml
+    with:
+      cache_key: ${{ inputs.cache_key }}
+      version: ${{ inputs.version }}
+      push-images: false
+      push-lts-images: false
+
+  test-slim:
+    needs: build
+    uses: ./.github/workflows/reusable-test-oceanbase-ce.yml
+    with:
+      cache_key: ${{ inputs.cache_key }}
+      mode: slim
+      port: 1234
+      test_password: 123456
+      init_sql: "USE test; 
+      CREATE TABLE user(id INT(10) PRIMARY KEY, name VARCHAR(20));
+      INSERT INTO user VALUES (1, 'tom'), (2, 'jerry');"
+
+  test-mini:
+    needs: build
+    uses: ./.github/workflows/reusable-test-oceanbase-ce.yml
+    with:
+      cache_key: ${{ inputs.cache_key }}
+      cluster_name: github-action
+      mode: mini
+      port: 1234
+      sys_password: 1234567
+      test_tenant: mini
+      test_password: 7654321
+      init_sql: "USE test; 
+      CREATE TABLE user(id INT(10) PRIMARY KEY, name VARCHAR(20));
+      INSERT INTO user VALUES (1, 'tom'), (2, 'jerry');"

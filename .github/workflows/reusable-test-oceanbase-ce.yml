@@ -1,12 +1,9 @@
-name: java test oceanbase-ce
+name: test oceanbase-ce
 
 on:
   workflow_call:
     inputs:
       cache_key:
-        required: true
-        type: string
-      image_file:
         required: true
         type: string
       mode:
@@ -50,6 +47,9 @@ jobs:
           large-packages: true
           swap-storage: true
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
@@ -57,12 +57,15 @@ jobs:
           path: /tmp
 
       - name: Load Docker image
-        run: docker load -i /tmp/${{ inputs.image_file }}
+        run: |
+          docker load -i /tmp/oceanbase-ce-amd64.tar
+          rm -f /tmp/oceanbase-ce-amd64.tar
 
       - name: Start Docker container
         uses: oceanbase/setup-oceanbase-ce@v1
         with:
           image_name: oceanbase-ce
+          image_tag: amd64
           container_name: oceanbase-ce
           mode: ${{ inputs.mode }}
           cluster_name: ${{ inputs.cluster_name }}
@@ -84,9 +87,6 @@ jobs:
             echo "Container IP is $container_ip. Setting server_ip to container IP."
             echo "server_ip=$container_ip" >> $GITHUB_OUTPUT
           fi
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
       - name: Set up Java
         uses: actions/setup-java@v4
