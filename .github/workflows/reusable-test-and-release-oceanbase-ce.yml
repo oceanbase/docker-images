@@ -1,0 +1,36 @@
+name: test and release oceanbase-ce
+
+on:
+  workflow_call:
+    inputs:
+      tag_name:
+        required: true
+        type: string
+      lts:
+        required: true
+        type: boolean
+
+jobs:
+  set-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_version_vars.outputs.version }}
+    steps:
+      - name: Set Version variables
+        id: set_version_vars
+        run: echo "version=$(echo ${{ inputs.tag_name }} | grep -P '(\d*\.\d*\.\d*\.\d*-\d{18})' --only-matching)" >> $GITHUB_OUTPUT
+
+  build-and-test:
+    uses: ./.github/workflows/reusable-build-and-test-oceanbase-ce.yml
+    needs: set-version
+    with:
+      cache_key: release-oceanbase-ce
+      version: ${{ needs.set-version.outputs.version }}
+
+  release:
+    uses: ./.github/workflows/reusable-build-and-release-oceanbase-ce.yml
+    needs: [ set-version, build-and-test ]
+    with:
+      version: ${{ needs.set-version.outputs.version }}
+      push-images: true
+      push-lts-images: ${{ inputs.lts }}

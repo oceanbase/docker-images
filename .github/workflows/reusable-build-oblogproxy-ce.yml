@@ -1,0 +1,49 @@
+name: build oblogproxy-ce image
+
+on:
+  workflow_call:
+    inputs:
+      cache_key:
+        required: true
+        type: string
+      version:
+        required: false
+        type: string
+
+jobs:
+  build-oblogproxy-ce-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Free disk space on Ubuntu runner
+        uses: kfir4444/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
+
+      - name: Print environment variables
+        run: printenv
+
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build oblogproxy-ce image
+        run: |
+          cd oblogproxy-ce
+          docker buildx build --build-arg VERSION=${{ inputs.version }} --platform linux/amd64 -t oblogproxy-ce:amd64 --load --output type=docker,dest=./oblogproxy-ce-amd64.tar .
+          docker buildx build --build-arg VERSION=${{ inputs.version }} --platform linux/arm64 -t oblogproxy-ce:arm64 --load --output type=docker,dest=./oblogproxy-ce-arm64.tar .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.cache_key }}
+          path: oblogproxy-ce/oblogproxy-ce-**.tar
