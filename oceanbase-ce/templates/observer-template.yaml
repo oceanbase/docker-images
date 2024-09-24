@@ -1,6 +1,4 @@
 oceanbase-ce:
-  depends:
-    - ob-configserver
   servers:
     - ${OB_SERVER_IP}
   global:

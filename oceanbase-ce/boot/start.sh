@@ -93,14 +93,13 @@ function check_tenant_connectable() {
 }
 
 function fastboot() {
-	cd /root/demo/ && tar -xvzf store.tar.gz
+	cd /root/demo/ && tar -xvzf store.tar.gz && tar -xvzf etc.tar.gz
 	obd cluster start demo
 }
 
 function boot() {
 	# generate config based on variables
 	envsubst <templates/observer-template.yaml >/tmp/config.yaml
-	envsubst <templates/ob-configserver-template.yaml >>/tmp/config.yaml
 	obd cluster deploy obcluster -c /tmp/config.yaml
 	if [ $? -ne 0 ]; then
 		deploy_failed

@@ -18,6 +18,7 @@ RUN yum install -y --downloadonly --downloaddir=/root/pkgs oceanbase-ce-${VERSIO
 RUN obd mirror clone /root/pkgs/*.rpm
 RUN obd env set IO_DEFAULT_CONFIRM 1
 RUN obd mirror disable remote
+RUN obd mirror list local
 RUN obd cluster deploy demo -c /root/demo.yaml
 
 RUN rm -rf /root/demo/store && rm -rf /root/demo/etc
@@ -43,8 +44,6 @@ RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 
 COPY --from=builder /root/demo /root/demo
 COPY --from=builder /root/.obd /root/.obd
-
-RUN yum install -y --downloadonly --downloaddir=/tmp ob-configserver && obd mirror clone /tmp/*.rpm && rm -rf /tmp/*.rpm
 
 COPY boot /root/boot
 COPY templates /root/templates
