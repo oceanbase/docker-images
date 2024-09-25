@@ -44,8 +44,6 @@ RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 COPY --from=builder /root/demo /root/demo
 COPY --from=builder /root/.obd /root/.obd
 
-RUN yum install -y --downloadonly --downloaddir=/tmp ob-configserver && obd mirror clone /tmp/*.rpm && rm -rf /tmp/*.rpm
-
 COPY boot /root/boot
 COPY templates /root/templates
 COPY share/cluster /root/.obd/cluster

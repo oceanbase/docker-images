@@ -9,6 +9,7 @@ on:
 jobs:
   release:
     uses: ./.github/workflows/reusable-test-and-release-oceanbase-ce.yml
+    secrets: inherit
     with:
       tag_name: ${{ github.ref_name }}
       lts: false

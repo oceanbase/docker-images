@@ -1,6 +1,4 @@
 oceanbase-ce:
-  depends:
-    - ob-configserver
   servers:
     - ${OB_SERVER_IP}
   global:
@@ -16,6 +14,7 @@ oceanbase-ce:
     log_disk_size: ${OB_LOG_DISK_SIZE}
     root_password: ${OB_SYS_PASSWORD}
     scenario: ${OB_SCENARIO}
+    obconfig_url: ${OB_CONFIGURL}
     cpu_count: 16
     production_mode: false
     syslog_level: INFO

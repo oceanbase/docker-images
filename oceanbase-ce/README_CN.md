@@ -1,3 +1,4 @@
+[English](./README.md) | 中文版
 # 使用Docker部署OceanBase
 
 ## 简介
@@ -74,6 +75,7 @@ mysql -h127.0.0.1 -P2881 -uroot@test  # 使用通用租户的root账户连接
 | OB_TENANT_MINI_CPU      |                      | OceanBase租户mini_cpu配置                                                                                                                                                                                                                                                                                                                                                                                   |
 | OB_TENANT_MEMORY_SIZE   |                      | OceanBase租户memory_size配置                                                                                                                                                                                                                                                                                                                                                                                |
 | OB_TENANT_LOG_DISK_SIZE |                      | OceanBase租户log_disk_size配置                                                                                                                                                                                                                                                                                                                                                                              |
+| OB_CONFIGSERVER_ADDRESS |                      | ob-configserver 地址, 示例: http://1.1.1.1:8080                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 ## 运行Sysbench脚本
 oceanbase-ce镜像包含sysbench工具用于基准测试。使用以下命令运行sysbench测试：

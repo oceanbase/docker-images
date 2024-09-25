@@ -1,3 +1,4 @@
+English | [中文版](./README_CN.md)
 # Deploy OceanBase with Docker
 
 ## Introduction
@@ -74,6 +75,7 @@ Below is a table of supported environment variables for the image:
 | OB_TENANT_MINI_CPU      |                      | The oceanbase tenant mini_cpu configuration                                                                                                                                                                                                                                                                                                                                                                                                               |
 | OB_TENANT_MEMORY_SIZE   |                      | The oceanbase tenant memory_size configuration                                                                                                                                                                                                                                                                                                                                                                                                            |
 | OB_TENANT_LOG_DISK_SIZE |                      | The oceanbase tenant log_disk_size configuration                                                                                                                                                                                                                                                                                                                                                                                                          |
+| OB_CONFIGSERVER_ADDRESS |                      | Address of ob-configserver e.g. http://1.1.1.1:8080                                                                                                                                                                                                                                                                                                                                                                                                       |
 ## Running Sysbench Script
 The oceanbase-ce image includes the sysbench tool for benchmarking. Use the following command to run a sysbench test:
 ```
