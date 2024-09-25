@@ -1,3 +1,4 @@
+[English](./README.md) | 中文版
 # 使用Docker部署OceanBase
 
 ## 简介

@@ -1,3 +1,4 @@
+English | [中文版](./README_CN.md)
 # Deploy OceanBase with Docker
 
 ## Introduction
