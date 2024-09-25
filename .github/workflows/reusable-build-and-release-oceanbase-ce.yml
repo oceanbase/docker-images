@@ -101,16 +101,16 @@ jobs:
         id: set_image_tags
         run: |
           image_tags="ghcr.io/${{ github.repository_owner }}/oceanbase-ce:${{ inputs.version }}"
-          image_tags="${image_tags}, ${{ env.DOCKER_PUSH_BASE }}/oceanbase-ce:${{ inputs.version }}"
-          image_tags="${image_tags}, quay.io/${{ env.QUAY_IO_PUSH_BASE }}/oceanbase-ce:${{ inputs.version }}"
+          image_tags="${image_tags}, ${{ vars.DOCKER_PUSH_BASE }}/oceanbase-ce:${{ inputs.version }}"
+          image_tags="${image_tags}, quay.io/${{ vars.QUAY_IO_PUSH_BASE }}/oceanbase-ce:${{ inputs.version }}"
           
           if [[ "${{ inputs.push-lts-images }}" == "true" ]]; then
             lts_version="$(echo ${{ inputs.version }} | grep -P '(\d*\.\d*\.\d*)' --only-matching)"
             lts_tag="${lts_version}-lts"
           
             image_tags="${image_tags}, ghcr.io/${{ github.repository_owner }}/oceanbase-ce:${lts_tag}"
-            image_tags="${image_tags}, ${{ env.DOCKER_PUSH_BASE }}/oceanbase-ce:${lts_tag}"
-            image_tags="${image_tags}, quay.io/${{ env.QUAY_IO_PUSH_BASE }}/oceanbase-ce:${lts_tag}"
+            image_tags="${image_tags}, ${{ vars.DOCKER_PUSH_BASE }}/oceanbase-ce:${lts_tag}"
+            image_tags="${image_tags}, quay.io/${{ vars.QUAY_IO_PUSH_BASE }}/oceanbase-ce:${lts_tag}"
           
             image_tags="${image_tags}, ghcr.io/${{ github.repository_owner }}/oceanbase-ce:latest"
             image_tags="${image_tags}, ${{ vars.DOCKER_PUSH_BASE }}/oceanbase-ce:latest"
