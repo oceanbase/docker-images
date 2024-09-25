@@ -18,7 +18,6 @@ RUN yum install -y --downloadonly --downloaddir=/root/pkgs oceanbase-ce-${VERSIO
 RUN obd mirror clone /root/pkgs/*.rpm
 RUN obd env set IO_DEFAULT_CONFIRM 1
 RUN obd mirror disable remote
-RUN obd mirror list local
 RUN obd cluster deploy demo -c /root/demo.yaml
 
 RUN rm -rf /root/demo/store && rm -rf /root/demo/etc
