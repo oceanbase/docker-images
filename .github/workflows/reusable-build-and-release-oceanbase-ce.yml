@@ -19,6 +19,7 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    secrets: inherit
     steps:
       - name: Free disk space on Ubuntu runner
         uses: kfir4444/free-disk-space@main
