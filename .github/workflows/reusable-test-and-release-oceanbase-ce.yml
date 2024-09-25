@@ -31,6 +31,7 @@ jobs:
     uses: ./.github/workflows/reusable-build-and-release-oceanbase-ce.yml
     needs: [ set-version, build-and-test ]
     secrets: inherit
+    variables: inherit
     with:
       version: ${{ needs.set-version.outputs.version }}
       push-images: true
