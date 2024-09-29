@@ -21,6 +21,6 @@ export OB_TENANT_INIT_SQL_DIR=${OB_TENANT_INIT_SQL_DIR:-/root/boot/init.d}
 
 export TELEMETRY_REPORTER="docker_${OB_CLUSTER_NAME}"
 
-if [ -n $OB_CONFIGSERVER_ADDRESS ]; then
+if [ -n "$OB_CONFIGSERVER_ADDRESS" ]; then
     export OB_CONFIGURL="${OB_CONFIGSERVER_ADDRESS}/services"
 fi
