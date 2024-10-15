@@ -6,6 +6,7 @@ English | [中文版](./README_CN.md)
 The `oceanbase-ce` Docker image, available on [dockerhub](https://hub.docker.com/r/oceanbase/oceanbase-ce), [quay.io](https://quay.io/repository/oceanbase/oceanbase-ce) and [ghcr.io](https://ghcr.io/oceanbase/oceanbase-ce), is designed for users to quickly set up an OceanBase environment for testing purposes.
 
 ### Key Considerations:
+- There are known issues running this image on MacOS and intel chip with docker version greater than 4.9.0, you can download the desired version of docker from this [link](https://desktop.docker.com/mac/main/amd64/81317/Docker.dmg?_gl=17jelfd_gcl_auOTk5Nzk0MDUwLjE3MTE4ODMyNzM._gaNDQyMjE1MDE5LjE3MTE4ODMyNzQ._ga_XJWPQMJYHQ*MTcxOTIxOTEwMy4xMS4xLjE3MTkyMjEwMTAuNjAuMC4w).
 - This image is intended for testing only; do not use it in production environments.
 - The image supports the setup of a single-instance cluster only.
 - This image is not designed for Kubernetes. For running containerized OceanBase on Kubernetes, refer to the [ob-operator](https://github.com/oceanbase/ob-operator) repository.
