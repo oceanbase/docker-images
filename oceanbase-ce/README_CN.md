@@ -6,6 +6,7 @@
 `oceanbase-ce` Docker镜像旨在让用户快速搭建OceanBase测试环境, 镜像可在[dockerhub](https://hub.docker.com/r/oceanbase/oceanbase-ce)、[quay.io](https://quay.io/repository/oceanbase/oceanbase-ce)和[ghcr.io](https://ghcr.io/oceanbase/oceanbase-ce)获取。
 
 ### 重要注意事项：
+- 此镜像在MacOS和intel芯片docker版本大于 4.9.0 的环境中有已知问题, 可以通过这个[链接](https://desktop.docker.com/mac/main/amd64/81317/Docker.dmg?_gl=17jelfd_gcl_auOTk5Nzk0MDUwLjE3MTE4ODMyNzM._gaNDQyMjE1MDE5LjE3MTE4ODMyNzQ._ga_XJWPQMJYHQ*MTcxOTIxOTEwMy4xMS4xLjE3MTkyMjEwMTAuNjAuMC4w)下载指定版本的docker。
 - 此镜像仅用于测试目的；请勿在生产环境中使用。
 - 该镜像仅支持单实例集群的设置。
 - 此镜像不适用于Kubernetes。如需在Kubernetes上运行容器化的OceanBase，请参考[ob-operator](https://github.com/oceanbase/ob-operator)。
