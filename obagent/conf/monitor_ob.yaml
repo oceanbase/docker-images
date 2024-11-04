@@ -462,9 +462,7 @@ obInputExtra: &obInputExtra
             max_duration_seconds: max_sys_task_duration_seconds
           enableCache: true
           cacheExpire: 120s
-        - sql: SELECT /*+ MONITOR_AGENT READ_CONSISTENCY(WEAK) QUERY_TIMEOUT(20000000) */ tenant.tenant_id, tenant.tenant_name, IFNULL(stat.cnt, 0) cnt FROM __all_tenant tenant LEFT JOIN (SELECT table_id>>40 AS tenant_id, COUNT(1) cnt FROM __all_virtual_election_info WH
-ERE member_list NOT LIKE CONCAT(replica_num,'{%') AND SUBSTR(member_list, 1, 1) != '0' GROUP BY tenant_id) stat ON tenant.tenant_id=stat.tenant_id where stat.tenant_id not in (select tenant_id from __all_rootservice_job where job_type='ALTER_TENANT_LOCALITY' and job_sta
-tus='INPROGRESS')
+        - sql: SELECT /*+ MONITOR_AGENT READ_CONSISTENCY(WEAK) QUERY_TIMEOUT(20000000) */ tenant.tenant_id, tenant.tenant_name, IFNULL(stat.cnt, 0) cnt FROM __all_tenant tenant LEFT JOIN (SELECT table_id>>40 AS tenant_id, COUNT(1) cnt FROM __all_virtual_election_info WHERE member_list NOT LIKE CONCAT(replica_num,'{%') AND SUBSTR(member_list, 1, 1) != '0' GROUP BY tenant_id) stat ON tenant.tenant_id=stat.tenant_id where stat.tenant_id not in (select tenant_id from __all_rootservice_job where job_type='ALTER_TENANT_LOCALITY' and job_status='INPROGRESS')
           sqlSlowThreshold: 100ms
           name: partition_replica_absent
           condition: ob_is_rootservice
@@ -477,9 +475,7 @@ tus='INPROGRESS')
             count: cnt
           enableCache: true
           cacheExpire: 2m
-        - sql: SELECT /*+ MONITOR_AGENT QUERY_TIMEOUT(20000000) */ tenant.tenant_id, tenant.tenant_name, IFNULL(stat.cnt, 0) cnt FROM __all_tenant tenant LEFT JOIN (SELECT /*+QUERY_TIMEOUT(20000000)*/ tenant.tenant_id, count(distinct a.table_id,a.partition_id) cnt FROM
-v$ob_cluster cluster, __all_tenant tenant JOIN __all_virtual_meta_table a ON a.tenant_id=tenant.tenant_id LEFT JOIN __all_virtual_meta_table b ON a.table_id=b.table_id AND a.partition_id=b.partition_id WHERE (cluster.cluster_role='PRIMARY' and b.role=1 or cluster.cluste
-r_role='STANDBY' and b.role=3) and b.tenant_id IS NULL GROUP BY tenant.tenant_id) stat ON stat.tenant_id=tenant.tenant_id
+        - sql: SELECT /*+ MONITOR_AGENT QUERY_TIMEOUT(20000000) */ tenant.tenant_id, tenant.tenant_name, IFNULL(stat.cnt, 0) cnt FROM __all_tenant tenant LEFT JOIN (SELECT /*+QUERY_TIMEOUT(20000000)*/ tenant.tenant_id, count(distinct a.table_id,a.partition_id) cnt FROM v$ob_cluster cluster, __all_tenant tenant JOIN __all_virtual_meta_table a ON a.tenant_id=tenant.tenant_id LEFT JOIN __all_virtual_meta_table b ON a.table_id=b.table_id AND a.partition_id=b.partition_id WHERE (cluster.cluster_role='PRIMARY' and b.role=1 or cluster.cluster_role='STANDBY' and b.role=3) and b.tenant_id IS NULL GROUP BY tenant.tenant_id) stat ON stat.tenant_id=tenant.tenant_id
           sqlSlowThreshold: 100ms
           name: partition_leader_absent
           condition: ob_is_rootservice
@@ -492,8 +488,7 @@ r_role='STANDBY' and b.role=3) and b.tenant_id IS NULL GROUP BY tenant.tenant_id
             count: cnt
           enableCache: true
           cacheExpire: 2m
-        - sql: select /*+ MONITOR_AGENT */ t2.tenant_id, t2.tenant_name, sum(t1.degraded_list <> '') as degraded_count from V$OB_LOG_STAT t1 inner join DBA_OB_TENANTS t2 on t1.tenant_id = t2.tenant_id and t2.tenant_type != 'META' where svr_ip= ? and svr_port= ? group by
- t1.tenant_id
+        - sql: select /*+ MONITOR_AGENT */ t2.tenant_id, t2.tenant_name, sum(t1.degraded_list <> '') as degraded_count from V$OB_LOG_STAT t1 inner join DBA_OB_TENANTS t2 on t1.tenant_id = t2.tenant_id and t2.tenant_type != 'META' where svr_ip= ? and svr_port= ? group by t1.tenant_id
           params: [ ob_svr_ip, ob_svr_port ]
           sqlSlowThreshold: 100ms
           name: log_stream
@@ -506,8 +501,7 @@ r_role='STANDBY' and b.role=3) and b.tenant_id IS NULL GROUP BY tenant.tenant_id
             degraded_count: degraded_count
           enableCache: true
           cacheExpire: 1m
-        - sql: SELECT T1.UNIT_ID, T1.SVR_IP, T1.SVR_PORT, T3.TENANT_ID, T3.TENANT_NAME, T1.LOG_DISK_SIZE, T1.LOG_DISK_IN_USE FROM (SELECT UNIT_ID, SVR_IP, SVR_PORT, SUM(LOG_DISK_SIZE) AS LOG_DISK_SIZE, SUM(LOG_DISK_IN_USE) AS LOG_DISK_IN_USE FROM V$OB_UNITS GROUP BY UNI
-T_ID) T1 JOIN DBA_OB_UNITS T2 JOIN (SELECT TENANT_ID, TENANT_NAME FROM DBA_OB_TENANTS WHERE TENANT_TYPE IN ('SYS', 'USER')) T3 ON T1.UNIT_ID = T2.UNIT_ID AND T2.TENANT_ID = T3.TENANT_ID
+        - sql: SELECT T1.UNIT_ID, T1.SVR_IP, T1.SVR_PORT, T3.TENANT_ID, T3.TENANT_NAME, T1.LOG_DISK_SIZE, T1.LOG_DISK_IN_USE FROM (SELECT UNIT_ID, SVR_IP, SVR_PORT, SUM(LOG_DISK_SIZE) AS LOG_DISK_SIZE, SUM(LOG_DISK_IN_USE) AS LOG_DISK_IN_USE FROM V$OB_UNITS GROUP BY UNIT_ID) T1 JOIN DBA_OB_UNITS T2 JOIN (SELECT TENANT_ID, TENANT_NAME FROM DBA_OB_TENANTS WHERE TENANT_TYPE IN ('SYS', 'USER')) T3 ON T1.UNIT_ID = T2.UNIT_ID AND T2.TENANT_ID = T3.TENANT_ID
           sqlSlowThreshold: 100ms
           name: ob_tenant_log_disk
           minObVersion: 4.0.0.0
@@ -519,8 +513,7 @@ T_ID) T1 JOIN DBA_OB_UNITS T2 JOIN (SELECT TENANT_ID, TENANT_NAME FROM DBA_OB_TE
             used_bytes: LOG_DISK_IN_USE
           enableCache: true
           cacheExpire: 1m
-        - sql: select tenant_id, frozen_scn as frozen_version, LAST_SCN as last_version, case is_error when 'YES' then 1 else 0 end as is_error, case is_suspended when 'YES' then 1 else 0 end as is_suspended, time_to_usec(start_time) as start_time, time_to_usec(frozen_t
-ime) as frozen_time, time_to_usec(now()) as current from CDB_OB_MAJOR_COMPACTION
+        - sql: select tenant_id, frozen_scn as frozen_version, LAST_SCN as last_version, case is_error when 'YES' then 1 else 0 end as is_error, case is_suspended when 'YES' then 1 else 0 end as is_suspended, time_to_usec(start_time) as start_time, time_to_usec(frozen_time) as frozen_time, time_to_usec(now()) as current from CDB_OB_MAJOR_COMPACTION
           sqlSlowThreshold: 100ms
           name: ob_compaction
           minObVersion: 4.0.0.0
