@@ -849,5 +849,6 @@ modules:
               - <<: *obInputExtra
             processors:
               - <<: *obRetagProcessor
+              - <<: *jointableProcessor
             exporter:
               <<: *extraExporter
