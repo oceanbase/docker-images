@@ -768,7 +768,7 @@ jointableProcessor: &jointableProcessor
               maxOBVersion: ~
           cacheExpire: 3m
           conditions:
-            - metrics: [ "ob_cache", "ob_partition", "ob_tenant_log_disk", "ob_table", "ob_plan_cache", "ob_waitevent", "ob_system_event", "ob_tenant_task", "ob_clog", "ob_memstore", "ob_compaction", "ob_unit_config" ]
+            - metrics: [ "ob_tenant_log_disk", "ob_cache", "ob_partition", "ob_table", "ob_plan_cache", "ob_waitevent", "ob_system_event", "ob_tenant_task", "ob_clog", "ob_memstore", "ob_compaction", "ob_unit_config" ]
               tagNames: [ "ob_tenant_id" ]
               removeNotMatchedTagValueMessage: true
         - queryDataConfigs:
