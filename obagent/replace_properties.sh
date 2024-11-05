@@ -2,7 +2,7 @@
 agent.http.basic.auth.metricAuthEnabled=false,\
 monagent.ob.monitor.user=${MONITOR_USER},\
 monagent.ob.monitor.password=${MONITOR_PASSWORD},\
-monagent.host.ip=`hostname -i`,\
+monagent.host.ip=${HOST_IP:-$(hostname -i)},\
 monagent.cluster.id=${CLUSTER_ID},\
 monagent.ob.cluster.name=${CLUSTER_NAME},\
 monagent.ob.cluster.id=${CLUSTER_ID},\
