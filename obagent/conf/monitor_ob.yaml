@@ -501,16 +501,17 @@ obInputExtra: &obInputExtra
             degraded_count: degraded_count
           enableCache: true
           cacheExpire: 1m
-        - sql: SELECT T1.UNIT_ID, T1.SVR_IP, T1.SVR_PORT, T3.TENANT_ID, T3.TENANT_NAME, T1.LOG_DISK_SIZE, T1.LOG_DISK_IN_USE FROM (SELECT UNIT_ID, SVR_IP, SVR_PORT, SUM(LOG_DISK_SIZE) AS LOG_DISK_SIZE, SUM(LOG_DISK_IN_USE) AS LOG_DISK_IN_USE FROM V$OB_UNITS GROUP BY UNIT_ID) T1 JOIN DBA_OB_UNITS T2 JOIN (SELECT TENANT_ID, TENANT_NAME FROM DBA_OB_TENANTS WHERE TENANT_TYPE IN ('SYS', 'USER')) T3 ON T1.UNIT_ID = T2.UNIT_ID AND T2.TENANT_ID = T3.TENANT_ID
+        - sql: SELECT T1.UNIT_ID as unit_id, T1.SVR_IP as svr_ip, T1.SVR_PORT as svr_port, T3.TENANT_ID as tenant_id, T3.TENANT_NAME as tenant_name, T1.LOG_DISK_SIZE as log_disk_size, T1.LOG_DISK_IN_USE as log_disk_in_use FROM (SELECT UNIT_ID, SVR_IP, SVR_PORT, SUM(LOG_DISK_SIZE) AS LOG_DISK_SIZE, SUM(LOG_DISK_IN_USE) AS LOG_DISK_IN_USE FROM V$OB_UNITS GROUP BY UNIT_ID) T1 JOIN DBA_OB_UNITS T2 JOIN (SELECT TENANT_ID, TENANT_NAME FROM DBA_OB_TENANTS WHERE TENANT_TYPE IN ('SYS', 'USER')) T3 ON T1.UNIT_ID = T2.UNIT_ID AND T2.TENANT_ID = T3.TENANT_ID
           sqlSlowThreshold: 100ms
           name: ob_tenant_log_disk
           minObVersion: 4.0.0.0
           maxObVersion: ~
           tags:
-            ob_tenant_id: TENANT_ID
+            tenant_name: tenant_name
+            ob_tenant_id: tenant_id
           metrics:
-            total_bytes: LOG_DISK_SIZE
-            used_bytes: LOG_DISK_IN_USE
+            total_bytes: log_disk_size
+            used_bytes: log_disk_in_use
           enableCache: true
           cacheExpire: 1m
         - sql: select tenant_id, frozen_scn as frozen_version, LAST_SCN as last_version, case is_error when 'YES' then 1 else 0 end as is_error, case is_suspended when 'YES' then 1 else 0 end as is_suspended, time_to_usec(start_time) as start_time, time_to_usec(frozen_time) as frozen_time, time_to_usec(now()) as current from CDB_OB_MAJOR_COMPACTION
@@ -848,6 +849,5 @@ modules:
               - <<: *obInputExtra
             processors:
               - <<: *obRetagProcessor
-              - <<: *jointableProcessor
             exporter:
               <<: *extraExporter
