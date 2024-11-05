@@ -508,6 +508,7 @@ obInputExtra: &obInputExtra
           maxObVersion: ~
           tags:
             ob_tenant_id: TENANT_ID
+            tenant_name: TENANT_NAME
           metrics:
             total_bytes: LOG_DISK_SIZE
             used_bytes: LOG_DISK_IN_USE
