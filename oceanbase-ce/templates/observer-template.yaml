@@ -2,11 +2,10 @@ oceanbase-ce:
   servers:
     - ${OB_SERVER_IP}
   global:
-    home_path: /root/ob
+    home_path: /root/ob/observer
     mysql_port: 2881
     rpc_port: 2882
     zone: zone1
-    cluster_id: 1
     appname: ${OB_CLUSTER_NAME}
     memory_limit: ${OB_MEMORY_LIMIT}
     system_memory: ${OB_SYSTEM_MEMORY}
