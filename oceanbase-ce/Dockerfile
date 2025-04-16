@@ -26,9 +26,11 @@ RUN cd /root/.obd && rm -rf log/obd && tar -cvzf repository.tar.gz repository &&
 FROM openanolis/anolisos
 
 WORKDIR /root
+RUN yum install -y gettext ncurses-compat-libs openssh-server && yum clean all
+
 RUN yum install -y yum-utils && \
     yum-config-manager --add-repo http://mirrors.oceanbase.com/oceanbase/OceanBase.repo && \
-    yum install -y ob-deploy obclient ob-sysbench gettext ncurses-compat-libs openssh-server && \
+    yum install -y ob-deploy obclient ob-sysbench && \
     yum clean all
 
 RUN obd env set IO_DEFAULT_CONFIRM 1
