@@ -21,7 +21,9 @@ RUN obd mirror disable remote
 RUN obd cluster deploy demo -c /root/demo.yaml
 
 RUN rm -rf /root/demo/store && rm -rf /root/demo/etc
-RUN cd /root/.obd && rm -rf log/obd && tar -cvzf repository.tar.gz repository && rm -rf /root/.obd/repository && rm -rf /root/.obd/mirror/local/* && rm -rf /root/.obd/cluster
+RUN cd /root/.obd && rm -rf log/obd && rm -rf /root/.obd/mirror/local/* && rm -rf /root/.obd/cluster
+RUN find /root/.obd/repository -name "ob_admin" | xargs rm -rf
+RUN find /root/.obd/repository -name "oblogminer" | xargs rm -rf
 
 FROM openanolis/anolisos
 

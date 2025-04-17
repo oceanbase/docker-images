@@ -129,7 +129,6 @@ function set_tenant_password() {
 source boot/env.sh
 
 get_mode
-cd /root/.obd && tar -xvzf repository.tar.gz && cd /root
 if [ -f "/root/.obd/cluster/obcluster/config.yaml" ]; then
 	echo "find obd deploy information, skip configuring..."
 	echo "start ob cluster ..."
