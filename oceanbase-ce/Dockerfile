@@ -21,14 +21,18 @@ RUN obd mirror disable remote
 RUN obd cluster deploy demo -c /root/demo.yaml
 
 RUN rm -rf /root/demo/store && rm -rf /root/demo/etc
-RUN cd /root/.obd && rm -rf log/obd && tar -cvzf repository.tar.gz repository && rm -rf /root/.obd/repository && rm -rf /root/.obd/mirror/local/* && rm -rf /root/.obd/cluster
+RUN cd /root/.obd && rm -rf log/obd && rm -rf /root/.obd/mirror/local/* && rm -rf /root/.obd/cluster
+RUN find /root/.obd/repository -name "ob_admin" | xargs rm -rf
+RUN find /root/.obd/repository -name "oblogminer" | xargs rm -rf
 
 FROM openanolis/anolisos
 
 WORKDIR /root
+RUN yum install -y gettext ncurses-compat-libs openssh-server && yum clean all
+
 RUN yum install -y yum-utils && \
     yum-config-manager --add-repo http://mirrors.oceanbase.com/oceanbase/OceanBase.repo && \
-    yum install -y ob-deploy obclient ob-sysbench gettext ncurses-compat-libs openssh-server && \
+    yum install -y ob-deploy obclient ob-sysbench && \
     yum clean all
 
 RUN obd env set IO_DEFAULT_CONFIRM 1
