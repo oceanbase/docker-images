@@ -83,7 +83,6 @@ function check_tenant_connectable() {
 }
 
 function fastboot() {
-    cd /root/demo/ && tar -xvzf store.tar.gz && tar -xvzf etc.tar.gz
     obd env set CUSTOM_CLUSTER_ID $(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c32)
     obd cluster start demo
 }
