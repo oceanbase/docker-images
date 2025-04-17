@@ -1,4 +1,4 @@
-name: release lts oceanbase-ce
+name: release latest lts oceanbase-ce
 
 on:
   push:
