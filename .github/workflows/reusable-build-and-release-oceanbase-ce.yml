@@ -15,6 +15,9 @@ on:
       push-lts-images:
         required: false
         type: boolean
+      push-latest-images:
+        required: false
+        type: boolean
 
 jobs:
   build-and-release:
@@ -111,7 +114,9 @@ jobs:
             image_tags="${image_tags}, ghcr.io/${{ github.repository_owner }}/oceanbase-ce:${lts_tag}"
             image_tags="${image_tags}, ${{ vars.DOCKER_PUSH_BASE }}/oceanbase-ce:${lts_tag}"
             image_tags="${image_tags}, quay.io/${{ vars.QUAY_IO_PUSH_BASE }}/oceanbase-ce:${lts_tag}"
-          
+          fi
+
+          if [[ "${{ inputs.push-latest-images }}" == "true" ]]; then
             image_tags="${image_tags}, ghcr.io/${{ github.repository_owner }}/oceanbase-ce:latest"
             image_tags="${image_tags}, ${{ vars.DOCKER_PUSH_BASE }}/oceanbase-ce:latest"
             image_tags="${image_tags}, quay.io/${{ vars.QUAY_IO_PUSH_BASE }}/oceanbase-ce:latest"

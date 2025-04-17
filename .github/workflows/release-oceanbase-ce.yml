@@ -13,3 +13,4 @@ jobs:
     with:
       tag_name: ${{ github.ref_name }}
       lts: false
+      latest: false

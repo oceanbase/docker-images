@@ -9,6 +9,9 @@ on:
       lts:
         required: true
         type: boolean
+      latest:
+        required: true
+        type: boolean
 
 jobs:
   set-version:
@@ -35,3 +38,4 @@ jobs:
       version: ${{ needs.set-version.outputs.version }}
       push-images: true
       push-lts-images: ${{ inputs.lts }}
+      push-latest-images: ${{ inputs.latest }}
