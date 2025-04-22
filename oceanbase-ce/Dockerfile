@@ -48,10 +48,14 @@ RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 COPY --from=builder /root/demo /root/demo
 COPY --from=builder /root/.obd /root/.obd
 
-COPY boot /root/boot
-COPY templates /root/templates
+RUN yum install -y epel-release && yum install -y p7zip p7zip-plugins && yum clean all
+
 COPY share/cluster /root/.obd/cluster
-COPY share/store /root/demo/store
 COPY share/etc /root/demo/etc
+COPY share/store.img /root/demo/store.img
+COPY share/empty_clog /root/empty_clog
+COPY build/recover-clog.sh /root/recover-clog.sh
+COPY templates /root/templates
+COPY boot /root/boot
 
 ENTRYPOINT ["bash", "-c", "/usr/sbin/sshd && /root/boot/start.sh"]

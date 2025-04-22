@@ -83,8 +83,16 @@ function check_tenant_connectable() {
 }
 
 function fastboot() {
+    date
+    export LD_LIBRARY_PATH=/root/demo/lib
+    cd /root/demo/ 
+    7z x store.img store -o/root/demo
+    /root/recover-clog.sh
+    date
+    bin/observer
     obd env set CUSTOM_CLUSTER_ID $(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c32)
     obd cluster start demo
+    date
 }
 
 function boot() {
@@ -150,5 +158,6 @@ else
 	fi
 fi
 
+date
 echo "boot success!"
 loop_forever
