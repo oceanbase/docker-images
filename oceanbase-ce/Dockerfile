@@ -28,7 +28,7 @@ RUN find /root/.obd/repository -name "oblogminer" | xargs rm -rf
 FROM openanolis/anolisos
 
 WORKDIR /root
-RUN yum install -y gettext ncurses-compat-libs openssh-server squashfs-tool && yum clean all
+RUN yum install -y gettext ncurses-compat-libs openssh-server squashfs-tools && yum clean all
 
 RUN yum install -y yum-utils && \
     yum-config-manager --add-repo http://mirrors.oceanbase.com/oceanbase/OceanBase.repo && \
