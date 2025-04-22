@@ -61,6 +61,7 @@ jobs:
         run: |
           mkdir -p ./oceanbase-ce/share
           docker run -v ./oceanbase-ce/share:/root/share oceanbase-ce-pre
+          du -sh ./oceanbase-ce/share/etc/*
 
       - name: Build observer image
         if: ${{ inputs.push-images == false }}

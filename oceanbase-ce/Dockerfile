@@ -56,5 +56,6 @@ COPY share/empty_clog /root/empty_clog
 COPY build/recover-clog.sh /root/recover-clog.sh
 COPY templates /root/templates
 COPY boot /root/boot
+RUN du -sh /root/demo/etc/*
 
 ENTRYPOINT ["bash", "-c", "/usr/sbin/sshd && /root/boot/start.sh"]
