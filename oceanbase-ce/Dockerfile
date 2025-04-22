@@ -28,7 +28,7 @@ RUN find /root/.obd/repository -name "oblogminer" | xargs rm -rf
 FROM openanolis/anolisos
 
 WORKDIR /root
-RUN yum install -y gettext ncurses-compat-libs openssh-server && yum clean all
+RUN yum install -y gettext ncurses-compat-libs openssh-server squashfs-tool && yum clean all
 
 RUN yum install -y yum-utils && \
     yum-config-manager --add-repo http://mirrors.oceanbase.com/oceanbase/OceanBase.repo && \
@@ -48,7 +48,6 @@ RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 COPY --from=builder /root/demo /root/demo
 COPY --from=builder /root/.obd /root/.obd
 
-RUN yum install -y epel-release && yum install -y p7zip p7zip-plugins && yum clean all
 
 COPY share/cluster /root/.obd/cluster
 COPY share/etc /root/demo/etc

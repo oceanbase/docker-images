@@ -61,15 +61,6 @@ jobs:
         run: |
           mkdir -p ./oceanbase-ce/share
           docker run -v ./oceanbase-ce/share:/root/share oceanbase-ce-pre
-          cd ./oceanbase-ce/share
-          dd if=/dev/zero of=store.img bs=1M count=256
-          mkfs.ext4 store.img
-          mkdir -p mnt
-          mount -o loop store.img $PWD/mnt
-          cp -r store $PWD/mnt
-          umount $PWD/mnt
-          rm -rf mnt
-          cd ../../
 
       - name: Build observer image
         if: ${{ inputs.push-images == false }}
