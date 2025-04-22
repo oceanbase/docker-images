@@ -50,7 +50,7 @@ COPY --from=builder /root/.obd /root/.obd
 
 
 COPY share/cluster /root/.obd/cluster
-COPY share/etc /root/demo/etc
+COPY share/etc.img /root/demo/etc.img
 COPY share/store.img /root/demo/store.img
 COPY share/empty_clog /root/empty_clog
 COPY build/recover-clog.sh /root/recover-clog.sh

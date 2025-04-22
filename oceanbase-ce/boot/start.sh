@@ -87,6 +87,7 @@ function fastboot() {
     export LD_LIBRARY_PATH=/root/demo/lib
     cd /root/demo/ 
     unsquashfs -d /root/demo/store store.img
+    unsquashfs -d /root/demo/etc etc.img
     /root/recover-clog.sh
     date
     bin/observer
