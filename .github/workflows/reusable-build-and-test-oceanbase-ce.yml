@@ -18,6 +18,7 @@ jobs:
       version: ${{ inputs.version }}
       push-images: false
       push-lts-images: false
+      push-latest-images: false
 
   test-slim:
     needs: build

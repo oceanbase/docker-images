@@ -1,10 +1,10 @@
-name: release lts oceanbase-ce
+name: release latest lts oceanbase-ce
 
 on:
   push:
     tags:
-      - "lts-oceanbase-ce-[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+"
-      - "lts-oceanbase-[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+"
+      - "latest-lts-oceanbase-ce-[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+"
+      - "latest-lts-oceanbase-[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+"
 
 jobs:
   release:
@@ -13,4 +13,4 @@ jobs:
     with:
       tag_name: ${{ github.ref_name }}
       lts: true
-      latest: false
+      latest: true
