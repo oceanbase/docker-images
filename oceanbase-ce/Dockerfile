@@ -28,7 +28,7 @@ RUN find /root/.obd/repository -name "oblogminer" | xargs rm -rf
 FROM openanolis/anolisos
 
 WORKDIR /root
-RUN yum install -y gettext ncurses-compat-libs openssh-server && yum clean all
+RUN yum install -y gettext ncurses-compat-libs openssh-server squashfs-tools && yum clean all
 
 RUN yum install -y yum-utils && \
     yum-config-manager --add-repo http://mirrors.oceanbase.com/oceanbase/OceanBase.repo && \
@@ -48,10 +48,13 @@ RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 COPY --from=builder /root/demo /root/demo
 COPY --from=builder /root/.obd /root/.obd
 
-COPY boot /root/boot
-COPY templates /root/templates
+
 COPY share/cluster /root/.obd/cluster
-COPY share/store.tar.gz /root/demo/
-COPY share/etc.tar.gz /root/demo/
+COPY share/etc.img /root/demo/etc.img
+COPY share/store.img /root/demo/store.img
+COPY share/empty_clog /root/empty_clog
+COPY build/recover-clog.sh /root/recover-clog.sh
+COPY templates /root/templates
+COPY boot /root/boot
 
 ENTRYPOINT ["bash", "-c", "/usr/sbin/sshd && /root/boot/start.sh"]

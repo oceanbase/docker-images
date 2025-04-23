@@ -8,7 +8,7 @@ oceanbase-ce:
     scenario: express_oltp
     datafile_size: 256M
     datafile_next: 256M
-    datafile_maxsize: 3G
+    datafile_maxsize: 1G
     log_disk_size: 5G
     enable_syslog_recycle: true
     enable_syslog_wf: false

@@ -16,4 +16,4 @@ jobs:
     uses: ./.github/workflows/reusable-build-and-test-oceanbase-ce.yml
     with:
       cache_key: test-oceanbase-ce
-      version: 4.3.2.0-100000092024072912
+      version: 4.3.5.1-101000042025031818
