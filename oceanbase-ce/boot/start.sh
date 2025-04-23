@@ -88,7 +88,6 @@ function fastboot() {
     cd /root/demo/ 
     unsquashfs -d /root/demo/store store.img
     unsquashfs -d /root/demo/etc etc.img
-    du -sh /root/demo/etc/*
     /root/recover-clog.sh
     date
     bin/observer

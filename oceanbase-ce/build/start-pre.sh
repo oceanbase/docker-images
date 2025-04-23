@@ -1,7 +1,6 @@
 #!/bin/bash
 /root/convert-sparse-files.sh /root/demo/store /tmp/store 
 /root/handle-clog.sh > /root/empty_clog
-du -sh /root/demo/etc/*
 cp -r /root/demo/etc /root/share 
 cp -r /root/.obd/cluster /root/share
 cp -r /root/empty_clog /root/share 
