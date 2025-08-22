@@ -1,0 +1,276 @@
+name: test obbinlog-ce ARM64
+
+on:
+  push:
+    branches:
+      - 'release-*'
+  pull_request:
+    paths:
+      - '.github/workflows/*obbinlog-ce*.yml'
+      - 'obbinlog-ce/**'
+
+concurrency:
+  group: test-obbinlog-ce-arm-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-obbinlog-ce-arm:
+    runs-on: ubuntu-latest-arm64
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Clean up disk space
+        run: |
+          echo "Cleaning up disk space..."
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          echo "Disk space cleaned up"
+
+      - name: Build obbinlog-ce for ARM64
+        uses: docker/build-push-action@v6
+        with:
+          context: ./obbinlog-ce
+          platforms: linux/arm64
+          file: ./obbinlog-ce/Dockerfile
+          push: false
+          load: true
+          tags: obbinlog-ce:test-arm64
+          build-args: |
+            TARGETPLATFORM=linux/arm64
+
+      - name: Clean up build resources
+        run: |
+          echo "Cleaning up build resources..."
+          docker system prune -f
+          docker builder prune -f
+          echo "Build resources cleaned up"
+
+      - name: Start obbinlog-ce container
+        run: |
+          docker run -d \
+            --name obbinlog-ce-test \
+            --memory=8g --memory-swap=8g --cpus=4 \
+            -p 2881:2881 \
+            -p 2883:2883 \
+            -e CLUSTER_NAME=test \
+            -e TENANT_NAME=test \
+            -e PASSWORD=123456 \
+            obbinlog-ce:test-arm64
+          
+          for i in {1..120}; do
+            if docker logs obbinlog-ce-test 2>/dev/null | grep -q "OBBinlog is ready!"; then
+              break
+            fi
+            sleep 5
+          done
+
+      - name: Install MySQL client
+        run: |
+          echo "Installing MySQL client..."
+          sudo apt-get update
+          sudo apt-get install -y mysql-client
+
+      - name: Test database connection and binlog
+        run: |
+          for i in {1..60}; do
+            if mysql -h127.0.0.1 -P2881 -uroot -p123456 -e "SELECT 1;" 2>/dev/null; then
+              break
+            fi
+            sleep 10
+          done
+          
+          mysql -h127.0.0.1 -P2881 -uroot -p123456 -e "SHOW DATABASES;"
+          mysql -h127.0.0.1 -P2883 -uroot@test -p123456 -e "SHOW DATABASES;"
+          mysql -h127.0.0.1 -P2883 -uroot@test -p123456 -e "
+            CREATE DATABASE IF NOT EXISTS test_db;
+            USE test_db;
+            CREATE TABLE IF NOT EXISTS test_table (id INT, name VARCHAR(50));
+            INSERT INTO test_table VALUES (1, 'test_value');
+            SELECT * FROM test_table;
+            DROP TABLE test_table;
+            DROP DATABASE test_db;
+          "
+          
+          # Wait for binlog service to be ready
+          sleep 30
+          
+          # Check binlog configuration
+          mysql -h127.0.0.1 -P2883 -uroot@test -p123456 -e "
+            SHOW VARIABLES LIKE 'log_bin';
+            SHOW VARIABLES LIKE 'binlog_format';
+            SHOW BINARY LOGS;
+          "
+          
+          # Get initial binlog position
+          INITIAL_POSITION=$(mysql -h127.0.0.1 -P2883 -uroot@test -p123456 -s -e "SHOW MASTER STATUS\G" | grep "Position:" | awk '{print $2}')
+          
+          # Create test database and table
+          mysql -h127.0.0.1 -P2883 -uroot@test -p123456 -e "
+            CREATE DATABASE IF NOT EXISTS binlog_test_db;
+            USE binlog_test_db;
+            CREATE TABLE IF NOT EXISTS binlog_test_table (
+              id INT AUTO_INCREMENT PRIMARY KEY,
+              name VARCHAR(100),
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+          "
+          
+          # Get position before insert
+          POS_BEFORE_INSERT=$(mysql -h127.0.0.1 -P2883 -uroot@test -p123456 -s -e "SHOW MASTER STATUS\G" | grep "Position:" | awk '{print $2}')
+          
+          # Insert test data to generate binlog events
+          mysql -h127.0.0.1 -P2883 -uroot@test -p123456 -e "
+            USE binlog_test_db;
+            INSERT INTO binlog_test_table (name) VALUES ('test_binlog_1');
+            INSERT INTO binlog_test_table (name) VALUES ('test_binlog_2');
+            INSERT INTO binlog_test_table (name) VALUES ('test_binlog_3');
+          "
+          
+          # Get position after insert
+          POS_AFTER_INSERT=$(mysql -h127.0.0.1 -P2883 -uroot@test -p123456 -s -e "SHOW MASTER STATUS\G" | grep "Position:" | awk '{print $2}')
+          
+          # Verify position changed after insert
+          if [ "$POS_BEFORE_INSERT" != "$POS_AFTER_INSERT" ]; then
+            echo "✅ Binlog position changed: $POS_BEFORE_INSERT -> $POS_AFTER_INSERT"
+          else
+            echo "❌ Binlog position did not change!"
+            exit 1
+          fi
+          
+          # Show binlog events
+          mysql -h127.0.0.1 -P2883 -uroot@test -p123456 -e "SHOW BINLOG EVENTS;"
+          
+          # Test DDL operations
+          mysql -h127.0.0.1 -P2883 -uroot@test -p123456 -e "
+            USE binlog_test_db;
+            ALTER TABLE binlog_test_table ADD COLUMN description TEXT;
+            UPDATE binlog_test_table SET description = 'updated description' WHERE id = 1;
+            DELETE FROM binlog_test_table WHERE id = 3;
+          "
+          
+          FINAL_POSITION=$(mysql -h127.0.0.1 -P2883 -uroot@test -p123456 -s -e "SHOW MASTER STATUS\G" | grep "Position:" | awk '{print $2}')
+          
+          # Verify final position changed
+          if [ "$POS_AFTER_INSERT" != "$FINAL_POSITION" ]; then
+            echo "✅ Final binlog position changed: $POS_AFTER_INSERT -> $FINAL_POSITION"
+          else
+            echo "❌ Final binlog position did not change!"
+            exit 1
+          fi
+          
+          mysql -h127.0.0.1 -P2883 -uroot@test -p123456 -e "SHOW BINLOG EVENTS;"
+
+      - name: Check container logs and diagnose issues
+        if: always()
+        run: |
+          echo "=== Container Diagnostics ==="
+          echo "Container status:"
+          docker ps -a --filter name=obbinlog-ce-test --format "table {{.Names}}\t{{.Status}}\t{{.State}}\t{{.CreatedAt}}"
+          
+          echo "Container logs:"
+          docker logs obbinlog-ce-test 2>/dev/null || echo "No logs available"
+          
+          echo "Container resource usage (if available):"
+          docker stats --no-stream obbinlog-ce-test 2>/dev/null || echo "Cannot get container stats"
+          
+          echo "System resources:"
+          free -h
+          df -h
+          
+          echo "Docker system info:"
+          docker system df
+          
+          echo "Recent Docker events:"
+          docker events --since 10m --until now --filter container=obbinlog-ce-test 2>/dev/null || echo "No recent events"
+          
+          echo "Container inspection:"
+          docker inspect obbinlog-ce-test 2>/dev/null | jq '.[0].State' 2>/dev/null || echo "Cannot inspect container"
+
+      - name: Collect and package logs
+        if: always()
+        run: |
+          echo "=== Collecting Logs ==="
+          
+          # Create logs directory
+          mkdir -p logs
+          
+          # Get container logs
+          echo "Collecting container logs..."
+          docker logs obbinlog-ce-test > logs/container.log 2>&1 || echo "Container logs not available" > logs/container.log
+          
+          # Try to copy observer logs from container
+          echo "Collecting observer logs..."
+          docker cp obbinlog-ce-test:/home/admin/oceanbase/store/test/log/observer.log logs/observer.log 2>/dev/null || echo "Observer logs not available" > logs/observer.log
+          
+          # Try to copy binlog logs from container
+          echo "Collecting binlog logs..."
+          docker cp obbinlog-ce-test:/home/ds/oblogproxy/log/logproxy.log logs/binlog.log 2>/dev/null || echo "Binlog logs not available" > logs/binlog.log
+          
+          # Try to copy deploy logs
+          echo "Collecting deploy logs..."
+          docker cp obbinlog-ce-test:/home/ds/oblogproxy/log/deploy.log logs/deploy.log 2>/dev/null || echo "Deploy logs not available" > logs/deploy.log
+          
+          # Try to copy out logs
+          echo "Collecting out logs..."
+          docker cp obbinlog-ce-test:/home/ds/oblogproxy/log/out.log logs/out.log 2>/dev/null || echo "Out logs not available" > logs/out.log
+          
+          # Get system information
+          echo "Collecting system information..."
+          echo "=== System Information ===" > logs/system_info.log
+          echo "Date: $(date)" >> logs/system_info.log
+          echo "Container Status:" >> logs/system_info.log
+          docker ps -a --filter name=obbinlog-ce-test >> logs/system_info.log 2>&1
+          echo "" >> logs/system_info.log
+          echo "System Resources:" >> logs/system_info.log
+          free -h >> logs/system_info.log 2>&1
+          df -h >> logs/system_info.log 2>&1
+          echo "" >> logs/system_info.log
+          echo "Docker System Info:" >> logs/system_info.log
+          docker system df >> logs/system_info.log 2>&1
+          
+          # List all collected logs
+          echo "Collected logs:"
+          ls -la logs/
+          
+          # Create a summary file
+          echo "=== Log Collection Summary ===" > logs/summary.txt
+          echo "Collection time: $(date)" >> logs/summary.txt
+          echo "Container name: obbinlog-ce-test" >> logs/summary.txt
+          echo "" >> logs/summary.txt
+          echo "Files collected:" >> logs/summary.txt
+          ls -la logs/ | grep -v "^total" >> logs/summary.txt
+          echo "" >> logs/summary.txt
+          echo "File sizes:" >> logs/summary.txt
+          for file in logs/*; do
+            if [ -f "$file" ]; then
+              size=$(wc -c < "$file")
+              echo "$(basename "$file"): ${size} bytes" >> logs/summary.txt
+            fi
+          done
+
+      - name: Upload logs as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: obbinlog-ce-logs-arm-${{ github.run_id }}
+          path: logs/
+          retention-days: 30
+
+      - name: Cleanup
+        if: always()
+        run: |
+          echo "Cleaning up..."
+          docker stop obbinlog-ce-test || true
+          docker rm obbinlog-ce-test || true
+          docker rmi obbinlog-ce:test-arm64 || true
+          docker system prune -f || true
+          echo "Cleanup completed" 
