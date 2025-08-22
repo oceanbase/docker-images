@@ -15,6 +15,8 @@ The `obbinlog-ce` Docker image provides a complete OceanBase database environmen
 
 **Note**: This image uses fixed compatible versions for all components to ensure compatibility.
 
+**Important**: This image is for testing purposes only and should not be used in production environments. It is suitable for integration testing scenarios such as GitHub CI.
+
 ## Building the Image
 
 ### Local Build
