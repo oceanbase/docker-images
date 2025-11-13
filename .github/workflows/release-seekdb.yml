@@ -54,10 +54,8 @@ jobs:
           push: true
           tags: |
             ${{ vars.DOCKER_PUSH_BASE }}/seekdb:${{ steps.set_version_vars.outputs.version }}
-            # quay.io/${{ vars.QUAY_IO_PUSH_BASE }}/seekdb:${{ steps.set_version_vars.outputs.version }}
             ghcr.io/${{ github.repository_owner }}/seekdb:${{ steps.set_version_vars.outputs.version }}
             ${{ vars.DOCKER_PUSH_BASE }}/seekdb:latest
-            # quay.io/${{ vars.QUAY_IO_PUSH_BASE }}/seekdb:latest
             ghcr.io/${{ github.repository_owner }}/seekdb:latest
           build-args: |
             VERSION=${{ steps.set_version_vars.outputs.version }}
