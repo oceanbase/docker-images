@@ -1,4 +1,4 @@
-FROM openanolis/anolisos:23
+FROM quay.io/rockylinux/rockylinux:9.4
 
 ARG TARGETARCH
 ARG VERSION
