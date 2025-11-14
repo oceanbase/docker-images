@@ -33,11 +33,32 @@ fi
 # Execute the main process
 /usr/libexec/oceanbase/scripts/seekdb_systemd_start 
 
+OBSERVER_CONFIG_FILE="/var/lib/oceanbase/etc/observer.config.bin"
+for i in {1..10}; do
+  echo "Loop iteration #$i"
+  if [ -f "$OBSERVER_CONFIG_FILE" ]; then
+    echo "File '$OBSERVER_CONFIG_FILE' found on attempt #$i."
+    break
+  fi
+  sleep 1
+done
+obshell agent start --seekdb --base-dir=/var/lib/oceanbase
+
 INITIALIZED_FLAG="/var/lib/oceanbase/.initialized"
 
 if [ ! -f "$INITIALIZED_FLAG" ]; then
   # change password using obshell
-  curl -X PUT "http://127.0.0.1:2886/api/v1/observer/user/root/password" -d "{\"password\":\"$ROOT_PASSWORD\"}" --unix-socket "/var/lib/oceanbase/run/obshell.sock"
+  for i in {1..10}; do
+    curl -X PUT "http://127.0.0.1:2886/api/v1/observer/user/root/password" -d "{\"password\":\"$ROOT_PASSWORD\"}" --unix-socket "/var/lib/oceanbase/run/obshell.sock"
+    EXIT_STATUS=$?
+    if [ $EXIT_STATUS -eq 0 ]; then
+      echo "Command succeeded on attempt #$i."
+      break # Exit the loop if successful
+    else
+      echo "Command failed on attempt #$i (exit status: $EXIT_STATUS). Retrying in 1 seconds..."
+      sleep 1
+    fi
+  done
 
   # Execute initialization scripts if INIT_SCRIPTS_PATH is set
   if [ -n "$INIT_SCRIPTS_PATH" ]; then
