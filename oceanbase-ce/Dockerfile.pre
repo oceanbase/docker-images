@@ -9,7 +9,7 @@ RUN mkdir -p pkgs
 RUN yum install -y squashfs-tools && yum clean all
 RUN yum install -y yum-utils && \
     yum-config-manager --add-repo http://mirrors.oceanbase.com/oceanbase/OceanBase.repo && \
-    yum install -y ob-deploy && \
+    yum install -y ob-deploy-3.6.0 && \
     yum clean all
 
 ADD build/demo.yaml /root/
