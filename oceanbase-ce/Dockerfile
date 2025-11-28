@@ -10,7 +10,7 @@ ADD build/demo.yaml /root/
 
 RUN yum install -y yum-utils && \
     yum-config-manager --add-repo http://mirrors.oceanbase.com/oceanbase/OceanBase.repo && \
-    yum install -y ob-deploy && \
+    yum install -y ob-deploy-3.6.0 && \
     yum clean all
 
 # download and clone all the required packages
@@ -32,7 +32,7 @@ RUN yum install -y gettext ncurses-compat-libs openssh-server squashfs-tools && 
 
 RUN yum install -y yum-utils && \
     yum-config-manager --add-repo http://mirrors.oceanbase.com/oceanbase/OceanBase.repo && \
-    yum install -y ob-deploy obclient ob-sysbench && \
+    yum install -y ob-deploy-3.6.0 obclient ob-sysbench && \
     yum clean all
 
 RUN obd env set IO_DEFAULT_CONFIRM 1

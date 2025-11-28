@@ -68,6 +68,12 @@ if [ ! -f "$INITIALIZED_FLAG" ]; then
     if [ -n "$ROOT_PASSWORD" ]; then
       MYSQL_OPTS="$MYSQL_OPTS -p$ROOT_PASSWORD"
     fi
+
+    if [ -n "$SEEKDB_DATABASE" ]; then
+      mysql $MYSQL_OPTS -e "CREATE DATABASE IF NOT EXISTS \`$SEEKDB_DATABASE\`;"
+      echo "Database $SEEKDB_DATABASE created."
+      MYSQL_OPTS="$MYSQL_OPTS -D$SEEKDB_DATABASE"
+    fi
  
     for sql_file in "$INIT_SCRIPTS_PATH"/*.sql; do
       if [ -f "$sql_file" ]; then
@@ -78,8 +84,7 @@ if [ ! -f "$INITIALIZED_FLAG" ]; then
     done
     echo "Initialization scripts execution complete."
   fi
- 
- 
+
   # Create the initialized flag file
   touch "$INITIALIZED_FLAG"
   echo "Initialization complete."

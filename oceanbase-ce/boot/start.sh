@@ -26,6 +26,11 @@ function exit_while_error() {
 
 function exec_tenant_init_sql() {
 	INIT_SCRIPTS_ROOT="${1}"
+    if [ -n "$OB_DATABASE" ]; then
+        echo "Creating database $OB_DATABASE..."
+        obclient -h127.1 -uroot@${OB_TENANT_NAME} -A -P2881 -e "CREATE DATABASE IF NOT EXISTS \`$OB_DATABASE\`;"
+        echo "Database $OB_DATABASE created."
+    fi
 
 	# Check whether parameter has been passed on
 	if [ -z "${INIT_SCRIPTS_ROOT}" ]; then
@@ -45,7 +50,11 @@ function run_custom_scripts_recursive() {
 	local f
 	for f in "${1}"/*; do
 		echo -e "running ${f} ..."
-		obclient -h127.1 -uroot@${OB_TENANT_NAME} -A -P2881 <${f}
+        MYSQL_OPTS="-h127.1 -uroot@${OB_TENANT_NAME} -A -P2881"
+        if [ -n "$OB_DATABASE" ]; then
+            MYSQL_OPTS="$MYSQL_OPTS -D$OB_DATABASE"
+        fi
+		obclient $MYSQL_OPTS <${f}
 		echo "DONE: running ${f}"
 	done
 }
