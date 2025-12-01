@@ -20,11 +20,11 @@ Before deploying `seekdb`, ensure that the following requirements are met:
 To start a SeekDB instance, use the following commands:
 
 ```bash
-docker run -d -p 2881:2881 oceanbase/seekdb
+docker run -d -p 2881:2881 -p 2886:2886 oceanbase/seekdb
 
 # Execute init SQL scripts after bootstrap, you need to mount the directory containing the init scripts then specify the directory in container via environment variable INIT_SCRIPTS_PATH.
 # Please do not change root user's password in SQL scripts. If you'd like to change root user's password, use environment variable ROOT_PASSWORD.
-docker run -d -p 2881:2881 -v {init_sql_folder_path}:/root/boot/init.d -e INIT_SCRIPTS_PATH=/root/boot/init.d oceanbase/seekdb
+docker run -d -p 2881:2881 -p 2886:2886 -v {init_sql_folder_path}:/root/boot/init.d -e INIT_SCRIPTS_PATH=/root/boot/init.d oceanbase/seekdb
 ```
 
 ## Supported Environment Variables
@@ -58,7 +58,7 @@ log_disk_size=2G
 The start command should be like this.
 ```
 # **Note:** If you decide to use a configuration file, please don't specify the resource related environment variables.
-docker run -d -p 2881:2881 -v {config_file}:/etc/oceanbase/seekdb.cnf oceanbase/seekdb
+docker run -d -p 2881:2881 -p 2886:2886 -v {config_file}:/etc/oceanbase/seekdb.cnf oceanbase/seekdb
 ```
 
 ## Data Persistence
@@ -66,7 +66,7 @@ SeekDB deploys in directory /var/lib/oceanbase, if you'd like to persist the dat
 
 ```
 mkdir -p seekdb
-docker run -d -p 2881:2881 -v $PWD/seekdb:/var/lib/oceanbase --name seekdb oceanbase/seekdb
+docker run -d -p 2881:2881 -p 2886:2886 -v $PWD/seekdb:/var/lib/oceanbase --name seekdb oceanbase/seekdb
 ```
 
 ## Connecting to SeekDB Instance
@@ -75,12 +75,6 @@ docker run -d -p 2881:2881 -v $PWD/seekdb:/var/lib/oceanbase --name seekdb ocean
 mysql -h 127.0.0.1 -P 2881 -u root -p    # Connect with the root account
 ```
 
-## Access obshell dashboard
-The container launches obshell as well, it provide a user-friendly web interface, if you'd like to access obshell dashboard, you may expose the obshell dashboard's port as well.
-```
-# 2886 is the port of obshell dashboard
-docker run -d -p 2881:2881 -p 2886:2886  oceanbase/seekdb
-```
-you may access it in the browser `http://${server_ip}:2886`, the login password is the same as user root's password. If ROOT_PASSWORD is not set, leave the password field blank.
-
+## Access dashboard
+The container provides a user-friendly web interface, you can access it in the browser `http://${server_ip}:2886`, the login password is the same as user root's password. If ROOT_PASSWORD is not set, leave the password field blank.
 
