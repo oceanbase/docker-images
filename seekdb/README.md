@@ -1,9 +1,9 @@
 English | [中文版](./README_CN.md)
-# Deploy SeekDB with Docker
+# Deploy seekdb with Docker
 
 ## Introduction
 
-The `seekdb` Docker image, available on [dockerhub](https://hub.docker.com/r/oceanbase/seekdb), [quay.io](https://quay.io/repository/oceanbase/seekdb) and [ghcr.io](https://ghcr.io/oceanbase/seekdb), is designed for users to quickly set up a SeekDB environment for testing purposes.
+The `seekdb` Docker image, available on [dockerhub](https://hub.docker.com/r/oceanbase/seekdb), [quay.io](https://quay.io/repository/oceanbase/seekdb) and [ghcr.io](https://ghcr.io/oceanbase/seekdb), is designed for users to quickly set up a seekdb environment for testing purposes.
 
 ### Key Considerations:
 - There are known issues running this image on MacOS and intel chip with docker version greater than 4.9.0, you can download the desired version of docker from this [link](https://desktop.docker.com/mac/main/amd64/81317/Docker.dmg?_gl=17jelfd_gcl_auOTk5Nzk0MDUwLjE3MTE4ODMyNzM._gaNDQyMjE1MDE5LjE3MTE4ODMyNzQ._ga_XJWPQMJYHQ*MTcxOTIxOTEwMy4xMS4xLjE3MTkyMjEwMTAuNjAuMC4w).
@@ -15,9 +15,9 @@ Before deploying `seekdb`, ensure that the following requirements are met:
 - The host machine should have at least 1 physical cores and 2GB of memory.
 - Docker should be installed and running on the host machine. Refer to the [Docker installation guide](https://docs.docker.com/get-docker/).
 
-## Starting a SeekDB Instance
+## Starting a seekdb Instance
 
-To start a SeekDB instance, use the following commands:
+To start a seekdb instance, use the following commands:
 
 ```bash
 docker run -d -p 2881:2881 -p 2886:2886 oceanbase/seekdb
@@ -42,7 +42,7 @@ Below is a table of supported environment variables for the image:
 | INIT_SCRIPTS_PATH       | The path in the container containing the init scripts.                                                                                                                                                                                                                                                                                                                                                                                                    |
 | SEEKDB_DATABASE         | The name of the database to be created at startup.                                                                                                                                                                                                                                                                                                                                                                                                        |
 
-If you'd like to modify other SeekDB parameters, you can do mount a configuration file into `/etc/oceanbase/seekdb.cnf` in the container, the default configuration file is as follows.
+If you'd like to modify other seekdb parameters, you can do mount a configuration file into `/etc/oceanbase/seekdb.cnf` in the container, the default configuration file is as follows.
 
 ```
 datafile_size=2G
@@ -62,14 +62,14 @@ docker run -d -p 2881:2881 -p 2886:2886 -v {config_file}:/etc/oceanbase/seekdb.c
 ```
 
 ## Data Persistence
-SeekDB deploys in directory /var/lib/oceanbase, if you'd like to persist the data on the host server, please mount an empty directory on the host server to this path.
+Seekdb deploys in directory /var/lib/oceanbase, if you'd like to persist the data on the host server, please mount an empty directory on the host server to this path.
 
 ```
 mkdir -p seekdb
 docker run -d -p 2881:2881 -p 2886:2886 -v $PWD/seekdb:/var/lib/oceanbase --name seekdb oceanbase/seekdb
 ```
 
-## Connecting to SeekDB Instance
+## Connecting to seekdb Instance
 
 ```
 mysql -h 127.0.0.1 -P 2881 -u root -p    # Connect with the root account
