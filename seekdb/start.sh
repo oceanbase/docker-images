@@ -50,7 +50,7 @@ INITIALIZED_FLAG="/var/lib/oceanbase/.initialized"
 
 if [ ! -f "$INITIALIZED_FLAG" ]; then
   # change password using obshell
-  for i in {1..100}; do
+  for i in {1..300}; do
     curl -X PUT "http://127.0.0.1:2886/api/v1/observer/user/root/password" -d "{\"password\":\"$ROOT_PASSWORD\"}" --unix-socket "/var/lib/oceanbase/run/obshell.sock"
     EXIT_STATUS=$?
     if [ $EXIT_STATUS -eq 0 ]; then
@@ -101,12 +101,12 @@ if [ $# -gt 0 ]; then
   fi
 
   echo "Waiting for SeekDB to be ready..."
-  for i in {1..600}; do
+  for i in {1..300}; do
     if mysql $MYSQL_OPTS -e "show databases" >/dev/null 2>&1; then
       echo "SeekDB is ready."
       break
     fi
-    if [ $i -eq 600 ]; then
+    if [ $i -eq 300 ]; then
         echo "Timeout waiting for SeekDB to be ready."
         exit 1
     fi
