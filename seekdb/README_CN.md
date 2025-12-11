@@ -1,9 +1,9 @@
 中文版 | [English](./README.md)
-# 使用 Docker 部署 SeekDB
+# 使用 Docker 部署 seekdb
 
 ## 简介
 
-`seekdb` Docker 镜像，可在 [dockerhub](https://hub.docker.com/r/oceanbase/seekdb)、[quay.io](https://quay.io/repository/oceanbase/seekdb) 和 [ghcr.io](https://ghcr.io/oceanbase/seekdb) 获取，旨在帮助用户快速搭建 SeekDB 环境进行测试。
+`seekdb` Docker 镜像，可在 [dockerhub](https://hub.docker.com/r/oceanbase/seekdb)、[quay.io](https://quay.io/repository/oceanbase/seekdb) 和 [ghcr.io](https://ghcr.io/oceanbase/seekdb) 获取，旨在帮助用户快速搭建 seekdb 环境进行测试。
 
 ### 主要注意事项：
 - 在 MacOS 和 Intel 芯片上运行此镜像时，如果 Docker 版本高于 4.9.0，存在已知问题。您可以从此 [链接](https://desktop.docker.com/mac/main/amd64/81317/Docker.dmg?_gl=17jelfd_gcl_auOTk5Nzk0MDUwLjE3MTE4ODMyNzM._gaNDQyMjE1MDE5LjE3MTE4ODMyNzQ._ga_XJWPQMJYHQ*MTcxOTIxOTEwMy4xMS4xLjE3MTkyMjEwMTAuNjAuMC4w) 下载所需版本的 Docker。
@@ -15,9 +15,9 @@
 - 主机应至少有 1 个物理核心和 2GB 内存。
 - 主机上应安装并运行 Docker。请参阅 [Docker 安装指南](https://docs.docker.com/get-docker/)。
 
-## 启动 SeekDB 实例
+## 启动 seekdb 实例
 
-要启动 SeekDB 实例，请使用以下命令：
+要启动 seekdb 实例，请使用以下命令：
 
 ```bash
 docker run -d -p 2881:2881 -p 2886:2886 oceanbase/seekdb
@@ -42,7 +42,7 @@ docker run -d -p 2881:2881 -p 2886:2886 -v {init_sql_folder_path}:/root/boot/ini
 | INIT_SCRIPTS_PATH       | 容器中包含初始化脚本的路径。                                                                                                                                                                                                                                                                                                                                                                                                              |
 | SEEKDB_DATABASE         | 启动时要创建的数据库名称。                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
-如果您想修改其他 SeekDB 参数，可以将配置文件挂载到容器中的 `/etc/oceanbase/seekdb.cnf`，默认配置文件如下。
+如果您想修改其他 seekdb 参数，可以将配置文件挂载到容器中的 `/etc/oceanbase/seekdb.cnf`，默认配置文件如下。
 
 ```
 datafile_size=2G
@@ -62,14 +62,14 @@ docker run -d -p 2881:2881 -p 2886:2886 -v {config_file}:/etc/oceanbase/seekdb.c
 ```
 
 ## 数据持久化
-SeekDB 部署在 `/var/lib/oceanbase` 目录中，如果您想将数据持久化到主机服务器，请将主机服务器上的空目录挂载到此路径。
+Seekdb 部署在 `/var/lib/oceanbase` 目录中，如果您想将数据持久化到主机服务器，请将主机服务器上的空目录挂载到此路径。
 
 ```
 mkdir -p seekdb
 docker run -d -p 2881:2881 -p 2886:2886 -v $PWD/seekdb:/var/lib/oceanbase --name seekdb oceanbase/seekdb
 ```
 
-## 连接到 SeekDB 实例
+## 连接到 seekdb 实例
 
 ```
 mysql -h 127.0.0.1 -P 2881 -u root -p    # 使用 root 帐户连接
