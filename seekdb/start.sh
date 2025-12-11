@@ -117,7 +117,7 @@ if [ $# -gt 0 ]; then
     MYSQL_OPTS="$MYSQL_OPTS -D$SEEKDB_DATABASE"
   fi
 
-  echo "Executing command: $*"
+  echo "Executing sql: $*"
   mysql $MYSQL_OPTS -e "$*"
   exit $?
 fi
