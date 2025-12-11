@@ -31,14 +31,16 @@ if [ -n "$LOG_DISK_SIZE" ]; then
 fi
 
 # Execute the main process
-/usr/libexec/oceanbase/scripts/seekdb_systemd_start 
+/usr/libexec/oceanbase/scripts/seekdb_systemd_start 2>/dev/null
 
 OBSERVER_CONFIG_FILE="/var/lib/oceanbase/etc/observer.config.bin"
-for i in {1..10}; do
-  echo "Loop iteration #$i"
+for i in {1..600}; do
   if [ -f "$OBSERVER_CONFIG_FILE" ]; then
     echo "File '$OBSERVER_CONFIG_FILE' found on attempt #$i."
     break
+  fi
+  if [ $((i % 10)) -eq 0 ]; then
+    echo "SeekDB is still not ready."
   fi
   sleep 1
 done
@@ -48,7 +50,7 @@ INITIALIZED_FLAG="/var/lib/oceanbase/.initialized"
 
 if [ ! -f "$INITIALIZED_FLAG" ]; then
   # change password using obshell
-  for i in {1..10}; do
+  for i in {1..100}; do
     curl -X PUT "http://127.0.0.1:2886/api/v1/observer/user/root/password" -d "{\"password\":\"$ROOT_PASSWORD\"}" --unix-socket "/var/lib/oceanbase/run/obshell.sock"
     EXIT_STATUS=$?
     if [ $EXIT_STATUS -eq 0 ]; then
