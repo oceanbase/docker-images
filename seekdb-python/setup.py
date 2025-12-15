@@ -39,7 +39,7 @@ def __package_name():
 
 def get_seekdb_source_dir():
     """Get the seekdb source directory"""
-    return current_dir / "seekdb"
+    return current_dir / "seekdb-source"
 
 def get_project_root():
     """Get the project root directory"""
@@ -69,7 +69,7 @@ def clone_repo(source_url: str = None, target_dir: Path = None, git_tag: str = N
     if source_url is None:
         source_url = "https://github.com/oceanbase/seekdb.git"
     if target_dir is None:
-        target_dir = current_dir / "seekdb"
+        target_dir = get_seekdb_source_dir()
 
     if target_dir.exists() and (target_dir / ".git").exists():
         if delete_if_exists:
@@ -78,16 +78,37 @@ def clone_repo(source_url: str = None, target_dir: Path = None, git_tag: str = N
             return target_dir
 
     try:
+        print(f"Cloning repository from {source_url} to {target_dir} with tag {git_tag}")
         subprocess.run(f"""mkdir -p {target_dir} \
-                && cd ${target_dir} \
+                && cd {target_dir} \
                 && git init \
                 && git remote add origin {source_url} \
                 && git fetch --progress --depth=1 origin {git_tag} \
                 && git checkout FETCH_HEAD
-                """, shell=True, check=True, capture_output=True, universal_newlines=True)
+                """,
+                shell=True,
+                check=True,
+                capture_output=True,
+                universal_newlines=True,
+                text=True)
+    except subprocess.CalledProcessError as e:
+        print(e.stdout)
+        print(e.stderr)
+        raise Exception(f"Failed to clone repository: {e}")
     except Exception as e:
         raise Exception(f"Failed to clone repository: {e}")
     return target_dir
+
+def install_dependencies() -> None:
+    """Install dependencies for the library build"""
+    print("Installing dependencies...")
+    command = "yum install -y git wget rpm* cpio make glibc-devel glibc-headers binutils m4 libtool libaio ccache"
+    result = subprocess.run(command, shell=True, check=False, capture_output=True, universal_newlines=True)
+    if result.returncode != 0:
+        print(result.stdout)
+        print(result.stderr)
+        raise Exception(f"Failed to install dependencies: {result.returncode}")
+
 
 def build_library():
     """Build the libseekdb_python library"""
@@ -123,12 +144,17 @@ def build_library():
     ]
 
     # Run build
+    print(f"Building library with command: {build_cmd}")
     result = subprocess.run(
         build_cmd,
         cwd=str(seekdb_source_dir),
         check=True,
         capture_output=False
     )
+    if result.returncode != 0:
+        print(result.stdout)
+        print(result.stderr)
+        raise Exception(f"Failed to build library: {result.returncode}")
 
     if not library_path.exists():
         raise FileNotFoundError(f"Build completed but library not found at {library_path}")
@@ -167,7 +193,8 @@ class BuildExtCommand(build_ext):
     """Custom build_ext command that builds the library and treats it as an extension"""
     def run(self):
         # Clone the repository first
-        clone_repo(git_tag=os.environ.get('SEEKDB_GIT_TAG', 'main'))
+        clone_repo(git_tag=os.environ.get('SEEKDB_GIT_TAG', 'master'))
+        install_dependencies()
 
         # Build the library first
         if os.environ.get('SEEKDB_BUILD_LIBRARY', '1').upper() in ('1', 'ON', 'YES', 'TRUE'):
