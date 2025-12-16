@@ -101,8 +101,9 @@ def clone_repo(source_url: str = None, target_dir: Path = None, git_tag: str = N
 
 def install_dependencies() -> None:
     """Install dependencies for the library build"""
+    command = "yum install -y git wget cpio make glibc-devel glibc-headers binutils m4 libtool libaio ccache"
     print("Installing dependencies...")
-    command = "yum install -y git wget rpm* cpio make glibc-devel glibc-headers binutils m4 libtool libaio ccache"
+    print(f"command: {command}")
     result = subprocess.run(command, shell=True, check=False, capture_output=True, universal_newlines=True)
     if result.returncode != 0:
         print(result.stdout)
