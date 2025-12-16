@@ -198,6 +198,44 @@ def copy_library(library_path, dest_dir=None):
 
 class BuildExtCommand(build_ext):
     """Custom build_ext command that builds the library and treats it as an extension"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Store the library path so build_extensions can use it
+        self.library_path = None
+
+    def build_extensions(self):
+        """Override to skip compilation and copy pre-built library instead"""
+        # Skip the standard compilation process since we're using a pre-built library
+        print("Skipping extension compilation (using pre-built library)")
+
+        # Copy the pre-built library to where setuptools expects the extension
+        if self.library_path and self.library_path.exists():
+            library_name = _library_name()
+            # Get the extension output path that setuptools expects
+            ext_fullname = self.get_ext_fullname(library_name)
+            ext_path = self.get_ext_fullpath(ext_fullname)
+            ext_path.parent.mkdir(parents=True, exist_ok=True)
+
+            # Copy the pre-built library to the extension output location
+            shutil.copy2(self.library_path, ext_path)
+            print(f"Copied pre-built library to extension path: {ext_path}")
+            print(f"  Source: {self.library_path}")
+            print(f"  Destination: {ext_path}")
+        else:
+            library_name = _library_name()
+            # Fallback: try to find library in current_dir
+            fallback_path = current_dir / f"{library_name}.so"
+            if fallback_path.exists():
+                ext_fullname = self.get_ext_fullname(library_name)
+                ext_path = self.get_ext_fullpath(ext_fullname)
+                ext_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(fallback_path, ext_path)
+                print(f"Copied pre-built library to extension path (from fallback): {ext_path}")
+            else:
+                raise FileNotFoundError(
+                    f"Pre-built library not found. Expected at: {self.library_path or fallback_path}"
+                )
+
     def run(self):
         # Clone the repository first
         clone_repo(git_tag=os.environ.get('SEEKDB_GIT_TAG', 'master'))
@@ -206,6 +244,9 @@ class BuildExtCommand(build_ext):
         # Build the library first
         if os.environ.get('SEEKDB_BUILD_LIBRARY', '1').upper() in ('1', 'ON', 'YES', 'TRUE'):
             library_path = build_library()
+
+            # Store the library path for build_extensions to use
+            self.library_path = library_path
 
             # Copy library to build directory so it's treated as an extension module
             build_lib_dir = Path(self.build_lib) / _package_name()
@@ -216,7 +257,8 @@ class BuildExtCommand(build_ext):
         else:
             print("Skipping library build (SEEKDB_BUILD_LIBRARY is disabled)")
 
-        # Run the standard build_ext (which will handle the extension modules)
+        # Run the standard build_ext (which will call build_extensions, but we've overridden it)
+        # This sets up the build directories and calls build_extensions()
         super().run()
 
 ext_modules = [Extension(
