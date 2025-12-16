@@ -147,7 +147,7 @@ def build_library():
         f"-DPYTHON_VERSION={python_version}",
         f"-DCMAKE_PREFIX_PATH={python_home}",
         "--make",
-        "-j3"
+        "-j2"
     ]
 
     # Run build
