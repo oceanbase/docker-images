@@ -31,10 +31,10 @@ def get_long_description():
         return readme_file.read_text(encoding='utf-8')
     return get_description()
 
-def __library_name():
+def _library_name():
     return "libseekdb_python"
 
-def __package_name():
+def _package_name():
     return "pylibseekdb"
 
 def get_seekdb_source_dir():
@@ -124,7 +124,7 @@ def build_library():
     python_home = get_python_home()
 
     build_dir = seekdb_source_dir / f"build_{build_type}"
-    library_path = build_dir / "src" / "observer" / "embed" / f"{__library_name()}.so"
+    library_path = build_dir / "src" / "observer" / "embed" / f"{_library_name()}.so"
 
     # Check if library already exists and rebuild flag is not set
     rebuild = os.environ.get('REBUILD', '1')
@@ -182,7 +182,7 @@ def build_library():
 
 def copy_library(library_path, dest_dir=None):
     """Copy the library to the output directory"""
-    library_name = __library_name()
+    library_name = _library_name()
     if dest_dir is None:
         dest_dir = current_dir
     else:
@@ -208,7 +208,7 @@ class BuildExtCommand(build_ext):
             library_path = build_library()
 
             # Copy library to build directory so it's treated as an extension module
-            build_lib_dir = Path(self.build_lib) / __package_name()
+            build_lib_dir = Path(self.build_lib) / _package_name()
             copy_library(library_path, build_lib_dir)
 
             # Also copy to source directory for package_data
@@ -220,13 +220,13 @@ class BuildExtCommand(build_ext):
         super().run()
 
 ext_modules = [Extension(
-    __library_name(),
+    _library_name(),
     sources=[],  # No sources - we'll copy the pre-built library
     extra_objects=[],  # Will be handled by build_ext
 )]
 
 setup(
-    name=__package_name(),
+    name=_package_name(),
     version=get_version(),
     description=get_description(),
     long_description=get_long_description(),
@@ -242,8 +242,8 @@ setup(
         "Documentation": "https://github.com/oceanbase/seekdb",
         "Bug Tracker": "https://github.com/oceanbase/seekdb/issues",
     },
-    packages=[__package_name()],
-    package_dir={f"{__package_name()}": "."},
+    packages=[_package_name()],
+    package_dir={f"{_package_name()}": "."},
     include_package_data=True,
     ext_modules=ext_modules,
     cmdclass={
