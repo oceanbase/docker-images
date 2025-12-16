@@ -3,7 +3,7 @@ name: release seekdb-python
 on:
   push:
     tags:
-      - "seekdb-python-v*-*"
+      - "seekdb-python-*-*"
 
 env:
   tagName: ${{ github.ref_name }}
@@ -21,12 +21,12 @@ jobs:
       - name: Extract version from tag
         id: extract_version
         run: |
-          # Extract versions from tag (e.g., 'seekdb-python-v1.0.0-1.0.0.post1')
+          # Extract versions from tag (e.g., 'seekdb-python-1.0.0-1.0.0.post1')
           # Format: seekdb-python-{seekdb_version}-{pylibseekdb_version}
           TAG_WITHOUT_PREFIX=$(echo "${{ env.tagName }}" | sed 's/seekdb-python-//')
 
           # Split by last dash to separate seekdb version and pylibseekdb version
-          # seekdb_version is everything before the last dash (e.g., 'v1.0.0')
+          # seekdb_version is everything before the last dash (e.g., '1.0.0')
           # package_version is everything after the last dash (e.g., '1.0.0.post1')
           SEEKDB_VERSION=$(echo "${TAG_WITHOUT_PREFIX}" | sed 's/-[^-]*$//')
           PACKAGE_VERSION=$(echo "${TAG_WITHOUT_PREFIX}" | sed 's/^.*-//')
