@@ -101,14 +101,19 @@ def clone_repo(source_url: str = None, target_dir: Path = None, git_tag: str = N
 
 def install_dependencies() -> None:
     """Install dependencies for the library build"""
-    command = "yum install -y git wget cpio make glibc-devel glibc-headers binutils m4 libtool libaio ccache"
+    commands = [
+        f"{sys.executable} -m ensurepip",
+        f"{sys.executable} -m pip install build wheel setuptools pybind11 auditwheel",
+        "yum install -y git wget cpio make glibc-devel glibc-headers binutils m4 libtool libaio ccache"
+    ]
     print("Installing dependencies...")
-    print(f"command: {command}")
-    result = subprocess.run(command, shell=True, check=False, capture_output=True, universal_newlines=True)
-    if result.returncode != 0:
-        print(result.stdout)
-        print(result.stderr)
-        raise Exception(f"Failed to install dependencies: {result.returncode}")
+    print(f"commands: {commands}")
+    for command in commands:
+        result = subprocess.run(command, shell=True, check=False, capture_output=True, universal_newlines=True)
+        if result.returncode != 0:
+            print(result.stdout)
+            print(result.stderr)
+            raise Exception(f"Failed to install dependencies: {result.returncode}")
 
 
 def build_library():
@@ -141,7 +146,8 @@ def build_library():
         "-DBUILD_EMBED_MODE=ON",
         f"-DPYTHON_VERSION={python_version}",
         f"-DCMAKE_PREFIX_PATH={python_home}",
-        "--make"
+        "--make",
+        "-j3"
     ]
 
     # Run build
