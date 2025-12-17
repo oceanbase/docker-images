@@ -242,20 +242,14 @@ class BuildExtCommand(build_ext):
         install_dependencies()
 
         # Build the library first
-        if os.environ.get('SEEKDB_BUILD_LIBRARY', '1').upper() in ('1', 'ON', 'YES', 'TRUE'):
-            library_path = build_library()
+        library_path = build_library()
 
-            # Store the library path for build_extensions to use
-            self.library_path = library_path
+        # Store the library path for build_extensions to use
+        self.library_path = library_path
 
-            # Copy library to build directory so it's treated as an extension module
-            build_lib_dir = Path(self.build_lib) / _package_name()
-            copy_library(library_path, build_lib_dir)
-
-            # Also copy to source directory for package_data
-            copy_library(library_path, current_dir)
-        else:
-            print("Skipping library build (SEEKDB_BUILD_LIBRARY is disabled)")
+        # Copy library to build directory so it's treated as an extension module
+        build_lib_dir = Path(self.build_lib) / _package_name()
+        copy_library(library_path, build_lib_dir)
 
         # Run the standard build_ext (which will call build_extensions, but we've overridden it)
         # This sets up the build directories and calls build_extensions()

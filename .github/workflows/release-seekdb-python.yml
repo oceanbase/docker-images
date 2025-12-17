@@ -60,7 +60,7 @@ jobs:
         uses: pypa/cibuildwheel@v3.3.0
         env:
           CIBW_BEFORE_BUILD: "pip install setuptools wheel build"
-          CIBW_BUILD: "cp38-* cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*"
+          CIBW_BUILD: "cp38-* cp39-*"
           CIBW_SKIP: "*-musllinux_* *-win_* *-macosx_*"
           CIBW_ENVIRONMENT: "SEEKDB_GIT_TAG=${{ steps.extract_version.outputs.seekdb_version }} PACKAGE_VERSION=${{ steps.extract_version.outputs.package_version }} BUILD_TYPE=release REBUILD=1 SEEKDB_BUILD_LIBRARY=1"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
