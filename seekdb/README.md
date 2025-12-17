@@ -63,10 +63,16 @@ docker run -d -p 2881:2881 -p 2886:2886 -v {config_file}:/etc/oceanbase/seekdb.c
 
 ## Data Persistence
 Seekdb deploys in directory /var/lib/oceanbase, if you'd like to persist the data on the host server, please mount an empty directory on the host server to this path.
+***NOTE***: If you run seekdb container on windows, please use docker volume instead of directory on the host to ensure it works properly.
 
 ```
+# On Linux or MacOS
 mkdir -p seekdb
 docker run -d -p 2881:2881 -p 2886:2886 -v $PWD/seekdb:/var/lib/oceanbase --name seekdb oceanbase/seekdb
+
+# On Windows
+docker volume create seekdb
+docker run -d -p 2881:2881 -p 2886:2886 -v seekdb:/var/lib/oceanbase --name seekdb oceanbase/seekdb
 ```
 
 ## Connecting to seekdb Instance
