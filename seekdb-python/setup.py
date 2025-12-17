@@ -213,7 +213,7 @@ class BuildExtCommand(build_ext):
             library_name = _library_name()
             # Get the extension output path that setuptools expects
             ext_fullname = self.get_ext_fullname(library_name)
-            ext_path = self.get_ext_fullpath(ext_fullname)
+            ext_path = Path(self.get_ext_fullpath(ext_fullname))
             ext_path.parent.mkdir(parents=True, exist_ok=True)
 
             # Copy the pre-built library to the extension output location
