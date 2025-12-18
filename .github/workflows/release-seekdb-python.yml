@@ -70,8 +70,9 @@ jobs:
           output-dir: wheelhouse
 
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
-          name: wheels
+          name: wheels-${{ steps.extract_version.outputs.package_version }}-${{ runner.arch }}
           path: wheelhouse/*.whl
           retention-days: 30
+          compression-level: 0

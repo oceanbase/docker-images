@@ -247,16 +247,12 @@ class BuildExtCommand(build_ext):
         # Store the library path for build_extensions to use
         self.library_path = library_path
 
-        # Copy library to build directory so it's treated as an extension module
-        build_lib_dir = Path(self.build_lib) / _package_name()
-        copy_library(library_path, build_lib_dir)
-
         # Run the standard build_ext (which will call build_extensions, but we've overridden it)
         # This sets up the build directories and calls build_extensions()
         super().run()
 
 ext_modules = [Extension(
-    _library_name(),
+    f"{_package_name()}.{_library_name()}",
     sources=[],  # No sources - we'll copy the pre-built library
     extra_objects=[],  # Will be handled by build_ext
 )]
