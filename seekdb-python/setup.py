@@ -208,12 +208,13 @@ class BuildExtCommand(build_ext):
         # Skip the standard compilation process since we're using a pre-built library
         print("Skipping extension compilation (using pre-built library)")
 
+        # Use the full extension name (e.g., pylibseekdb.libseekdb_python)
+        full_ext_name = f"{_package_name()}.{_library_name()}"
+
         # Copy the pre-built library to where setuptools expects the extension
         if self.library_path and self.library_path.exists():
-            library_name = _library_name()
             # Get the extension output path that setuptools expects
-            ext_fullname = self.get_ext_fullname(library_name)
-            ext_path = Path(self.get_ext_fullpath(ext_fullname))
+            ext_path = Path(self.get_ext_fullpath(full_ext_name))
             ext_path.parent.mkdir(parents=True, exist_ok=True)
 
             # Copy the pre-built library to the extension output location
@@ -222,12 +223,10 @@ class BuildExtCommand(build_ext):
             print(f"  Source: {self.library_path}")
             print(f"  Destination: {ext_path}")
         else:
-            library_name = _library_name()
             # Fallback: try to find library in current_dir
-            fallback_path = current_dir / f"{library_name}.so"
+            fallback_path = current_dir / f"{_library_name()}.so"
             if fallback_path.exists():
-                ext_fullname = self.get_ext_fullname(library_name)
-                ext_path = self.get_ext_fullpath(ext_fullname)
+                ext_path = Path(self.get_ext_fullpath(full_ext_name))
                 ext_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(fallback_path, ext_path)
                 print(f"Copied pre-built library to extension path (from fallback): {ext_path}")
