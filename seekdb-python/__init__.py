@@ -7,10 +7,14 @@ databases and execute SQL from Python code.
 """
 
 import sys
+import importlib.util
 import importlib.metadata
 
+def _package_name():
+    return "pylibseekdb"
+
 try:
-  __version__ = importlib.metadata.version("pylibseekdb")
+  __version__ = importlib.metadata.version(_package_name())
 except importlib.metadata.PackageNotFoundError:
   __version__ = "0.0.1.dev1"
 
@@ -37,6 +41,13 @@ def _load_oblite_module():
 
     try:
         # Import the module
+        # Attempt to find the pylibseekdb module path and add it to sys.path
+        spec = importlib.util.find_spec(_package_name())
+        if spec and spec.submodule_search_locations:
+            module_path = list(spec.submodule_search_locations)[0]
+            if module_path not in sys.path:
+                sys.path.insert(0, module_path)
+
         import libseekdb_python
         return libseekdb_python
     except ImportError as e:
