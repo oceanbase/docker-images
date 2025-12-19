@@ -63,6 +63,7 @@ jobs:
           CIBW_BUILD: "cp38-* cp39-*"
           CIBW_SKIP: "*-musllinux_* *-win_* *-macosx_*"
           CIBW_ENVIRONMENT: "SEEKDB_GIT_TAG=${{ steps.extract_version.outputs.seekdb_version }} PACKAGE_VERSION=${{ steps.extract_version.outputs.package_version }} BUILD_TYPE=release REBUILD=1 SEEKDB_BUILD_LIBRARY=1"
+          CIBW_TEST_COMMAND: "python seekdb_test.py"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
         with:
@@ -76,3 +77,23 @@ jobs:
           path: wheelhouse/*.whl
           retention-days: 30
           compression-level: 0
+
+  publish:
+    needs: build-wheels
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # OIDC needs this
+      contents: read
+    steps:
+      - name: Download all wheels
+        uses: actions/download-artifact@v6
+        with:
+          path: wheelhouse
+          pattern: wheels-${{ needs.build-wheels.outputs.package_version }}-*
+          merge-multiple: true
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1.13
+        with:
+          packages-dir: wheelhouse
+          skip-existing: true
