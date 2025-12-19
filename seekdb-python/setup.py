@@ -222,18 +222,17 @@ class BuildExtCommand(build_ext):
             print(f"Copied pre-built library to extension path: {ext_path}")
             print(f"  Source: {self.library_path}")
             print(f"  Destination: {ext_path}")
+
+            # Delete the build_dir
+            seekdb_source_dir = get_seekdb_source_dir()
+            build_type = os.environ.get('BUILD_TYPE', 'release')
+            build_dir = seekdb_source_dir / f"build_{build_type}"
+            shutil.rmtree(build_dir)
+            print(f"Deleted build_dir: {build_dir}")
         else:
-            # Fallback: try to find library in current_dir
-            fallback_path = current_dir / f"{_library_name()}.so"
-            if fallback_path.exists():
-                ext_path = Path(self.get_ext_fullpath(full_ext_name))
-                ext_path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(fallback_path, ext_path)
-                print(f"Copied pre-built library to extension path (from fallback): {ext_path}")
-            else:
-                raise FileNotFoundError(
-                    f"Pre-built library not found. Expected at: {self.library_path or fallback_path}"
-                )
+            raise FileNotFoundError(
+                f"Pre-built library not found. Expected at: {self.library_path}"
+            )
 
     def run(self):
         # Clone the repository first
