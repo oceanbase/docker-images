@@ -3,6 +3,7 @@
 Setup script for seekdb package
 """
 
+from filecmp import clear_cache
 import os
 import sys
 import subprocess
@@ -137,6 +138,10 @@ def build_library():
     print(f"  Python version: {python_version}")
     print(f"  Python home: {python_home}")
 
+    # clear ccache stat
+    clear_cache_cmd = "ccache -z"
+    subprocess.run(clear_cache_cmd, shell=True, check=False, capture_output=True, universal_newlines=True)
+
     # Build command
     build_cmd = [
         str(seekdb_source_dir / "build.sh"),
@@ -144,6 +149,7 @@ def build_library():
         "--init",
         "-DOB_USE_CCACHE=ON",
         "-DBUILD_EMBED_MODE=ON",
+        "-DEFAULT_LOG_LEVEL=WARN",
         f"-DPYTHON_VERSION={python_version}",
         f"-DCMAKE_PREFIX_PATH={python_home}",
         "--make",
@@ -165,6 +171,15 @@ def build_library():
 
     if not library_path.exists():
         raise FileNotFoundError(f"Build completed but library not found at {library_path}")
+
+    # ccache stat
+    stat_ccache_cmd = "ccache -s"
+    result = subprocess.run(stat_ccache_cmd, shell=True, check=False, capture_output=True, universal_newlines=True)
+    if result.returncode != 0:
+        print(result.stdout)
+        print(result.stderr)
+        raise Exception(f"Failed to get ccache stat: {result.returncode}")
+    print(f"ccache stat: {result.stdout}")
 
     # Strip the shared library to reduce its size, if the strip tool is available
     try:
