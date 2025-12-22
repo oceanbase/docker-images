@@ -149,7 +149,7 @@ def build_library():
         "--init",
         "-DOB_USE_CCACHE=ON",
         "-DBUILD_EMBED_MODE=ON",
-        "-DEFAULT_LOG_LEVEL=WARN",
+        "-DDEFAULT_LOG_LEVEL=WARN",
         f"-DPYTHON_VERSION={python_version}",
         f"-DCMAKE_PREFIX_PATH={python_home}",
         "--make",
@@ -241,7 +241,7 @@ class BuildExtCommand(build_ext):
             # Delete the build_dir
             seekdb_source_dir = get_seekdb_source_dir()
             build_type = os.environ.get('BUILD_TYPE', 'release')
-            build_dir = seekdb_source_dir / f"build_{build_type}"
+            build_dir = seekdb_source_dir / f"build_{build_type}" / "src" / "observer" / "embed"
             shutil.rmtree(build_dir)
             print(f"Deleted build_dir: {build_dir}")
         else:
