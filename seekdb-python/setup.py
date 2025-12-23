@@ -3,16 +3,13 @@
 Setup script for seekdb package
 """
 
-from filecmp import clear_cache
 import os
 import sys
 import subprocess
 import shutil
 from pathlib import Path
-from setuptools import setup, find_packages, Extension
-from setuptools.command.build_py import build_py
+from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
-from wheel.bdist_wheel import bdist_wheel
 
 # Get the current directory
 current_dir = Path(__file__).parent
@@ -79,12 +76,12 @@ def clone_repo(source_url: str = None, target_dir: Path = None, git_tag: str = N
             return target_dir
 
     try:
-        print(f"Cloning repository from {source_url} to {target_dir} with tag {git_tag}")
+        print(f"Cloning repository from {source_url} to '{target_dir}' with tag '{git_tag}'")
         subprocess.run(f"""mkdir -p {target_dir} \
                 && cd {target_dir} \
                 && git init \
                 && git remote add origin {source_url} \
-                && git fetch --progress --depth=1 origin {git_tag} \
+                && git fetch --progress --depth=1 origin '{git_tag}' \
                 && git checkout FETCH_HEAD
                 """,
                 shell=True,
@@ -164,10 +161,6 @@ def build_library():
         check=True,
         capture_output=False
     )
-    if result.returncode != 0:
-        print(result.stdout)
-        print(result.stderr)
-        raise Exception(f"Failed to build library: {result.returncode}")
 
     if not library_path.exists():
         raise FileNotFoundError(f"Build completed but library not found at {library_path}")

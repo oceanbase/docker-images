@@ -125,7 +125,7 @@ class InteractiveSQLClient:
     def connect(self) -> bool:
         """Connect to the database"""
         try:
-            print("Openning database...")
+            print("Opening database...")
             seekdb.open(db_dir=self.path)
             self.connection = seekdb.connect(database=self.database, autocommit=True)
             self.cursor = self.connection.cursor()
