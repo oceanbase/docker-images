@@ -146,7 +146,7 @@ def build_library():
         "--init",
         "-DOB_USE_CCACHE=ON",
         "-DBUILD_EMBED_MODE=ON",
-        "-DDEFAULT_LOG_LEVEL=WARN",
+        "-DDEFAULT_LOG_LEVEL=\"WARN\"",
         f"-DPYTHON_VERSION={python_version}",
         f"-DCMAKE_PREFIX_PATH={python_home}",
         "--make",
