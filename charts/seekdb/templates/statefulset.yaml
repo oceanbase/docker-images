@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "seekdb.fullname" . }}
+ -fix.o name: {{ include "seekdb.fullname" . }}
   labels:
     {{- include "seekdb.labels" . | nindent 4 }}
 spec:
@@ -77,13 +77,13 @@ spec:
           livenessProbe:
             tcpSocket:
               port: sql
-            initialDelaySeconds: 30
-            periodSeconds: 10
+            initialDelaySeconds: 2
+            periodSeconds: 3
           readinessProbe:
             tcpSocket:
               port: sql
-            initialDelaySeconds: 10
-            periodSeconds: 5
+            initialDelaySeconds: 2
+            periodSeconds: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
