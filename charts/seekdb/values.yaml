@@ -1,0 +1,86 @@
+# Default values for seekdb.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  repository: oceanbase/seekdb
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  sql:
+    enabled: true
+    type: ClusterIP
+    port: 2881
+    annotations: {}
+  obshell:
+    enabled: true
+    type: NodePort
+    port: 2886
+    annotations: {}
+
+persistence:
+  enabled: true
+  # storageClass: "-"
+  accessMode: ReadWriteOnce
+  size: 50Gi
+
+resources:
+  limits:
+    cpu: 4
+    memory: 8Gi
+  requests:
+    cpu: 1
+    memory: 2Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# SeekDB specific configuration
+seekdb:
+  # The password for the root user.
+  # If empty, a random 16-character alphanumeric password will be generated.
+  rootPassword: ""
+  
+  # The name of the database to be created at startup
+  database: ""
+
+  # Environment variables for seekdb configuration
+  # These correspond to the config file parameters
+  config:
+    cpuCount: ""      # e.g., 4
+    memoryLimit: ""   # e.g., 2G
+    logDiskSize: ""   # e.g., 2G
+    datafileSize: ""  # e.g., 2G
+    datafileNext: ""  # e.g., 2G
+    datafileMaxSize: "" # e.g., 50G
