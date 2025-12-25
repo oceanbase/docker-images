@@ -1,0 +1,18 @@
+apiVersion: v1
+entries:
+  seekdb:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2025-12-25T07:29:00.013707335Z"
+    description: A Helm chart for seekdb
+    digest: 79dfe5be9fff5aa9f9e3fa64a62cb53d5da1a54f80a64615a80fab6dee6d8c2c
+    keywords:
+    - oceanbase
+    - seekdb
+    - database
+    name: seekdb
+    type: application
+    urls:
+    - https://github.com/oceanbase/docker-images/releases/download/seekdb-0.1.1/seekdb-0.1.1.tgz
+    version: 0.1.1
+generated: "2025-12-25T07:29:00.013718926Z"
