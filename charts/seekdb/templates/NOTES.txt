@@ -1,0 +1,30 @@
+1. Get the application URL by running these commands:
+
+{{- if .Values.service.obshell.enabled }}
+  Obshell Dashboard:
+{{- if contains "NodePort" .Values.service.obshell.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "seekdb.fullname" . }}-obshell)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.service.obshell.type }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "seekdb.fullname" . }}-obshell'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "seekdb.fullname" . }}-obshell --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.service.obshell.port }}
+{{- else if contains "ClusterIP" .Values.service.obshell.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "seekdb.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:2886 to access the dashboard"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 2886:2886
+{{- end }}
+{{- end }}
+
+2. Connect to the database:
+
+  export ROOT_PASSWORD=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ include "seekdb.fullname" . }} -o jsonpath="{.data.password}" | base64 -d)
+
+  To connect from inside the cluster:
+  mysql -h {{ include "seekdb.fullname" . }}-sql.{{ .Release.Namespace }} -P {{ .Values.service.sql.port }} -u root -p$ROOT_PASSWORD
+
+  To connect from outside the cluster (using port-forward):
+  kubectl port-forward svc/{{ include "seekdb.fullname" . }}-sql 2881:2881 -n {{ .Release.Namespace }}
+  mysql -h 127.0.0.1 -P 2881 -u root -p$ROOT_PASSWORD
