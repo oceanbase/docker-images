@@ -11,5 +11,6 @@ RUN if [[ ${TARGETPLATFORM} == 'linux/amd64' ]] ; then yum install -y https://mi
 COPY start.sh /root/
 RUN chmod +x /root/start.sh
 ENV REPORTER=docker-seekdb
+ENV FORCE_START_WITH_ARGS="true"
 ENTRYPOINT ["/root/start.sh"]
 
