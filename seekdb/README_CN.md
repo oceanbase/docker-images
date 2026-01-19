@@ -24,7 +24,7 @@ docker run -d -p 2881:2881 -p 2886:2886 oceanbase/seekdb
 
 # 在引导后执行初始化 SQL 脚本，您需要挂载包含初始化脚本的目录，然后通过环境变量 INIT_SCRIPTS_PATH 指定容器中的挂载目录。
 # 请勿在 SQL 脚本中更改 root 用户的密码。如果您想更改 root 用户的密码，请使用环境变量 ROOT_PASSWORD。
-docker run -d -p 2881:2881 -p 2886:2886 -v {init_sql_folder_path}:/root/boot/init.d -e INIT_SCRIPTS_PATH=/root/boot/init.d oceanbase/seekdb
+docker run -d -p 2881:2881 -p 2886:2886 -e ROOT_PASSWORD={set_as_your_pwd} -v {init_sql_folder_path}:/root/boot/init.d -e INIT_SCRIPTS_PATH=/root/boot/init.d oceanbase/seekdb
 ```
 
 ## 支持的环境变量

@@ -33,7 +33,7 @@ docker run -p 2881:2881 --name oceanbase-ce -e MODE=slim -d oceanbase/oceanbase-
 
 # 启动后执行初始化SQL脚本，请勿在SQL脚本中更改root用户密码。
 # 如果您想更改root用户密码，请使用OB_TENANT_PASSWORD环境变量。
-docker run -p 2881:2881 --name oceanbase-ce -v {init_sql_folder_path}:/root/boot/init.d -d oceanbase/oceanbase-ce
+docker run -p 2881:2881 --name oceanbase-ce -e OB_TENANT_PASSWORD={set_as_your_pwd} -v {init_sql_folder_path}:/root/boot/init.d -d oceanbase/oceanbase-ce
 ```
 
 启动过程可能需要长达五分钟。通过运行以下命令验证启动是否完成：

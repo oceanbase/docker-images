@@ -33,7 +33,7 @@ docker run -p 2881:2881 --name oceanbase-ce -e MODE=slim -d oceanbase/oceanbase-
 
 # Execute init SQL scripts after bootstrap, do not change root user's password in SQL scripts. 
 # If you'd like to change root user's password, use variable OB_TENANT_PASSWORD.
-docker run -p 2881:2881 --name oceanbase-ce -v {init_sql_folder_path}:/root/boot/init.d -d oceanbase/oceanbase-ce
+docker run -p 2881:2881 --name oceanbase-ce -e OB_TENANT_PASSWORD={set_as_your_pwd} -v {init_sql_folder_path}:/root/boot/init.d -d oceanbase/oceanbase-ce
 ```
 
 The bootstrap procedure may take up to five minutes. Verify the bootstrap completion by running:

@@ -24,7 +24,7 @@ docker run -d -p 2881:2881 -p 2886:2886 oceanbase/seekdb
 
 # Execute init SQL scripts after bootstrap, you need to mount the directory containing the init scripts then specify the directory in container via environment variable INIT_SCRIPTS_PATH.
 # Please do not change root user's password in SQL scripts. If you'd like to change root user's password, use environment variable ROOT_PASSWORD.
-docker run -d -p 2881:2881 -p 2886:2886 -v {init_sql_folder_path}:/root/boot/init.d -e INIT_SCRIPTS_PATH=/root/boot/init.d oceanbase/seekdb
+docker run -d -p 2881:2881 -p 2886:2886 -e ROOT_PASSWORD={set_as_your_pwd} -v {init_sql_folder_path}:/root/boot/init.d -e INIT_SCRIPTS_PATH=/root/boot/init.d oceanbase/seekdb
 ```
 
 ## Supported Environment Variables
