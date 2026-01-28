@@ -7,7 +7,7 @@ WAIT_FOR_PASSWORD_SET_ATTEMPTS=300
 WAIT_FOR_SERVICE_READY_ATTEMPTS=300
 WAIT_INTERVAL_SECONDS=1
 
-CONFIG_FILE="/etc/oceanbase/seekdb.cnf"
+CONFIG_FILE="/etc/seekdb/seekdb.cnf"
 
 # Replace values in config file with environment variables if they are set
 
@@ -36,12 +36,12 @@ if [ -n "$LOG_DISK_SIZE" ]; then
 fi
 
 # Execute the main process
-/usr/libexec/oceanbase/scripts/seekdb_systemd_start 2>/dev/null
+/usr/libexec/seekdb/scripts/seekdb_systemd_start 2>/dev/null
 
-OBSERVER_CONFIG_FILE="/var/lib/oceanbase/etc/observer.config.bin"
+SEEKDB_CONFIG_FILE="/var/lib/oceanbase/etc/seekdb.config.bin"
 for i in $(seq 1 $WAIT_FOR_CONFIG_FILE_ATTEMPTS); do
-  if [ -f "$OBSERVER_CONFIG_FILE" ]; then
-    echo "File '$OBSERVER_CONFIG_FILE' found on attempt #$i."
+  if [ -f "$SEEKDB_CONFIG_FILE" ]; then
+    echo "File '$SEEKDB_CONFIG_FILE' found on attempt #$i."
     break
   fi
   if [ $((i % 10)) -eq 0 ]; then
@@ -56,7 +56,7 @@ INITIALIZED_FLAG="/var/lib/oceanbase/.initialized"
 if [ ! -f "$INITIALIZED_FLAG" ]; then
   # change password using obshell
   for i in $(seq 1 $WAIT_FOR_PASSWORD_SET_ATTEMPTS); do
-    curl -X PUT "http://127.0.0.1:2886/api/v1/observer/user/root/password" -d "{\"password\":\"$ROOT_PASSWORD\"}" --unix-socket "/var/lib/oceanbase/run/obshell.sock"
+    curl -X PUT "http://127.0.0.1:2886/api/v1/seekdb/user/root/password" -d "{\"password\":\"$ROOT_PASSWORD\"}" --unix-socket "/var/lib/oceanbase/run/obshell.sock"
     EXIT_STATUS=$?
     if [ $EXIT_STATUS -eq 0 ]; then
       echo "Command succeeded on attempt #$i."
@@ -127,10 +127,11 @@ if [ $# -gt 0 ]; then
   exit $?
 fi
 
-echo "Starting observer health check..."
-while pgrep observer > /dev/null; do
+echo "Seekdb started"
+echo "Start seekdb health check loop"
+while pgrep seekdb > /dev/null; do
   sleep 5
 done
 
-echo "Observer process not found. Exiting."
+echo "Seekdb process not found. Exiting."
 exit 1
