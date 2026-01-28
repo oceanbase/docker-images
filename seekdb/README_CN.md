@@ -42,7 +42,7 @@ docker run -d -p 2881:2881 -p 2886:2886 -e ROOT_PASSWORD={set_as_your_pwd} -v {i
 | INIT_SCRIPTS_PATH       | 容器中包含初始化脚本的路径。                                                                                                                                                                                                                                                                                                                                                                                                              |
 | SEEKDB_DATABASE         | 启动时要创建的数据库名称。                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
-如果您想修改其他 seekdb 参数，可以将配置文件挂载到容器中的 `/etc/oceanbase/seekdb.cnf`，默认配置文件如下。
+如果您想修改其他 seekdb 参数，可以将配置文件挂载到容器中的 `/etc/seekdb/seekdb.cnf`，默认配置文件如下。
 
 ```
 datafile_size=2G
@@ -58,7 +58,7 @@ log_disk_size=2G
 启动命令应如下所示。
 ```
 # **注意：** 如果您决定使用配置文件，请不要指定与资源相关的环境变量。
-docker run -d -p 2881:2881 -p 2886:2886 -v {config_file}:/etc/oceanbase/seekdb.cnf oceanbase/seekdb
+docker run -d -p 2881:2881 -p 2886:2886 -v {config_file}:/etc/seekdb/seekdb.cnf oceanbase/seekdb
 ```
 
 ## 数据持久化
