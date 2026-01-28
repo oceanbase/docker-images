@@ -42,7 +42,7 @@ Below is a table of supported environment variables for the image:
 | INIT_SCRIPTS_PATH       | The path in the container containing the init scripts.                                                                                                                                                                                                                                                                                                                                                                                                    |
 | SEEKDB_DATABASE         | The name of the database to be created at startup.                                                                                                                                                                                                                                                                                                                                                                                                        |
 
-If you'd like to modify other seekdb parameters, you can do mount a configuration file into `/etc/oceanbase/seekdb.cnf` in the container, the default configuration file is as follows.
+If you'd like to modify other seekdb parameters, you can do mount a configuration file into `/etc/seekdb/seekdb.cnf` in the container, the default configuration file is as follows.
 
 ```
 datafile_size=2G
@@ -58,7 +58,7 @@ log_disk_size=2G
 The start command should be like this.
 ```
 # **Note:** If you decide to use a configuration file, please don't specify the resource related environment variables.
-docker run -d -p 2881:2881 -p 2886:2886 -v {config_file}:/etc/oceanbase/seekdb.cnf oceanbase/seekdb
+docker run -d -p 2881:2881 -p 2886:2886 -v {config_file}:/etc/seekdb/seekdb.cnf oceanbase/seekdb
 ```
 
 ## Data Persistence
