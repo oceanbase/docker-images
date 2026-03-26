@@ -38,7 +38,7 @@ fi
 # Execute the main process
 /usr/libexec/seekdb/scripts/seekdb_systemd_start 2>/dev/null
 
-SEEKDB_CONFIG_FILE="/var/lib/oceanbase/etc/seekdb.config.bin"
+SEEKDB_CONFIG_FILE="/var/lib/oceanbase/etc/seekdb.data_version.bin"
 for i in $(seq 1 $WAIT_FOR_CONFIG_FILE_ATTEMPTS); do
   if [ -f "$SEEKDB_CONFIG_FILE" ]; then
     echo "File '$SEEKDB_CONFIG_FILE' found on attempt #$i."
