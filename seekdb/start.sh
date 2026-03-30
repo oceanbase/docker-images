@@ -9,30 +9,39 @@ WAIT_INTERVAL_SECONDS=1
 
 CONFIG_FILE="/etc/seekdb/seekdb.cnf"
 
-# Replace values in config file with environment variables if they are set
+# Set or append key=value in seekdb.cnf (line may be absent in newer packages)
+seekdb_set_cnf() {
+  local key="$1"
+  local value="$2"
+  if [ -f "$CONFIG_FILE" ] && grep -qE "^${key}=" "$CONFIG_FILE"; then
+    sed -i "s|^${key}=.*|${key}=${value}|" "$CONFIG_FILE"
+  else
+    echo "${key}=${value}" >> "$CONFIG_FILE"
+  fi
+}
 
 if [ -n "$DATAFILE_SIZE" ]; then
-  sed -i "s|^datafile_size=.*|datafile_size=$DATAFILE_SIZE|" $CONFIG_FILE
+  seekdb_set_cnf datafile_size "$DATAFILE_SIZE"
 fi
 
 if [ -n "$DATAFILE_NEXT" ]; then
-  sed -i "s|^datafile_next=.*|datafile_next=$DATAFILE_NEXT|" $CONFIG_FILE
+  seekdb_set_cnf datafile_next "$DATAFILE_NEXT"
 fi
 
 if [ -n "$DATAFILE_MAXSIZE" ]; then
-  sed -i "s|^datafile_maxsize=.*|datafile_maxsize=$DATAFILE_MAXSIZE|" $CONFIG_FILE
+  seekdb_set_cnf datafile_maxsize "$DATAFILE_MAXSIZE"
 fi
 
 if [ -n "$CPU_COUNT" ]; then
-  sed -i "s|^cpu_count=.*|cpu_count=$CPU_COUNT|" $CONFIG_FILE
+  seekdb_set_cnf cpu_count "$CPU_COUNT"
 fi
 
 if [ -n "$MEMORY_LIMIT" ]; then
-  sed -i "s|^memory_limit=.*|memory_limit=$MEMORY_LIMIT|" $CONFIG_FILE
+  seekdb_set_cnf memory_limit "$MEMORY_LIMIT"
 fi
 
 if [ -n "$LOG_DISK_SIZE" ]; then
-  sed -i "s|^log_disk_size=.*|log_disk_size=$LOG_DISK_SIZE|" $CONFIG_FILE
+  seekdb_set_cnf log_disk_size "$LOG_DISK_SIZE"
 fi
 
 # Execute the main process
