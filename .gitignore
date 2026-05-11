@@ -4,3 +4,4 @@
 *.log
 target
 oceanbase-ce/Dockerfile.inner
+seekdb/*.rpm
