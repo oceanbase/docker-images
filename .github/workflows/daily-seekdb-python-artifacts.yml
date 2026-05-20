@@ -1,0 +1,53 @@
+name: daily-seekdb-python-artifacts
+
+on:
+  schedule:
+    # Run once per day (UTC). Version string will include hour.
+    - cron: "0 0 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  build-wheels:
+    runs-on: ubuntu-latest
+    env:
+      SEEKDB_GIT_TAG: master
+    steps:
+      - name: Extract package version (UTC)
+        run: |
+          # Example: 2026.04.01.dev00
+          echo "PACKAGE_VERSION=$(date -u +'%Y.%m.%d.dev%H')" >> "$GITHUB_ENV"
+
+      - name: Free Disk Space
+        uses: insightsengineering/disk-space-reclaimer@v1
+        with:
+          tools-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
+
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Build wheels (Python 3.11 only)
+        uses: pypa/cibuildwheel@v3.3.0
+        env:
+          CIBW_BEFORE_BUILD: "pip install setuptools wheel build"
+          CIBW_BUILD: "cp311-*"
+          CIBW_SKIP: "*-musllinux_* *-win_* *-macosx_*"
+          CIBW_ENVIRONMENT: "SEEKDB_GIT_TAG=${{ env.SEEKDB_GIT_TAG }} PACKAGE_VERSION=${{ env.PACKAGE_VERSION }} BUILD_TYPE=release REBUILD=1 SEEKDB_BUILD_LIBRARY=1"
+          CIBW_TEST_COMMAND: "python {project}/seekdb-python/seekdb_test.py"
+          CIBW_TEST_REQUIRES: ""
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+        with:
+          package-dir: seekdb-python
+          output-dir: wheelhouse
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v6
+        with:
+          name: wheels-${{ env.PACKAGE_VERSION }}-${{ runner.arch }}
+          path: wheelhouse/*.whl
+          retention-days: 30
+          compression-level: 0
