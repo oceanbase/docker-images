@@ -63,8 +63,7 @@ jobs:
           CIBW_ENVIRONMENT: "SEEKDB_GIT_TAG=${{ steps.extract_version.outputs.seekdb_version }} PACKAGE_VERSION=${{ steps.extract_version.outputs.package_version }} BUILD_TYPE=release REBUILD=1 SEEKDB_BUILD_LIBRARY=1"
           CIBW_TEST_COMMAND: "python {project}/seekdb-python/seekdb_test.py"
           CIBW_TEST_REQUIRES: ""
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
-          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
+          CIBW_MANYLINUX_IMAGE: manylinux_2_28
         with:
           package-dir: seekdb-python
           output-dir: wheelhouse
