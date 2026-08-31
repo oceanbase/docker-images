@@ -3,6 +3,7 @@ name: release seekdb
 on:
   push:
     tags:
+      - "seekdb-[0-9]+.[0-9]+.[0-9]+-[0-9]+"
       - "seekdb-[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+"
 
 env:
@@ -43,7 +44,7 @@ jobs:
 
       - name: Set Version variables
         id: set_version_vars
-        run: echo "version=$(echo $tagName | grep -o -E '[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+')" >> $GITHUB_OUTPUT
+        run: echo "version=${tagName#seekdb-}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push observer w/o cache
         uses: docker/build-push-action@v6
