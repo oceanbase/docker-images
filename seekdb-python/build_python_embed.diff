@@ -1,0 +1,13 @@
+diff --git a/src/observer/embed/CMakeLists.txt b/src/observer/embed/CMakeLists.txt
+index cf8e5a96c25..c7d7720efcc 100644
+--- a/src/observer/embed/CMakeLists.txt
++++ b/src/observer/embed/CMakeLists.txt
+@@ -35,7 +35,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+   target_link_libraries(embedded_client PRIVATE seekdb_embed_c)
+ endif()
+
+-if(BUILD_EMBED_MODE AND OFF)
++if(BUILD_EMBED_MODE AND ON)
+   # Set target Python version, can be overridden by CMake parameter
+   if(NOT DEFINED PYTHON_VERSION)
+     set(PYTHON_VERSION "3.8")

@@ -20,5 +20,6 @@ RUN --mount=type=bind,source=.,target=/build \
 COPY start.sh /root/
 RUN chmod +x /root/start.sh
 ENV REPORTER=docker-seekdb
+ENV FORCE_START_WITH_ARGS="true"
 ENTRYPOINT ["/root/start.sh"]
 
