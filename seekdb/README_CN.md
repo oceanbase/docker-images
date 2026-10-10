@@ -20,11 +20,11 @@
 要启动 seekdb 实例，请使用以下命令：
 
 ```bash
-docker run -d -p 2881:2881 -p 2886:2886 oceanbase/seekdb
+docker run -d -p 2881:2881 oceanbase/seekdb
 
 # 在引导后执行初始化 SQL 脚本，您需要挂载包含初始化脚本的目录，然后通过环境变量 INIT_SCRIPTS_PATH 指定容器中的挂载目录。
 # 请勿在 SQL 脚本中更改 root 用户的密码。如果您想更改 root 用户的密码，请使用环境变量 ROOT_PASSWORD。
-docker run -d -p 2881:2881 -p 2886:2886 -e ROOT_PASSWORD={set_as_your_pwd} -v {init_sql_folder_path}:/root/boot/init.d -e INIT_SCRIPTS_PATH=/root/boot/init.d oceanbase/seekdb
+docker run -d -p 2881:2881 -e ROOT_PASSWORD={set_as_your_pwd} -v {init_sql_folder_path}:/root/boot/init.d -e INIT_SCRIPTS_PATH=/root/boot/init.d oceanbase/seekdb
 ```
 
 ## 支持的环境变量
@@ -58,21 +58,22 @@ log_disk_size=2G
 启动命令应如下所示。
 ```
 # **注意：** 如果您决定使用配置文件，请不要指定与资源相关的环境变量。
-docker run -d -p 2881:2881 -p 2886:2886 -v {config_file}:/etc/seekdb/seekdb.cnf oceanbase/seekdb
+docker run -d -p 2881:2881 -v {config_file}:/etc/seekdb/seekdb.cnf oceanbase/seekdb
 ```
 
 ## 数据持久化
-Seekdb 部署在 `/var/lib/oceanbase` 目录中，如果您想将数据持久化到主机服务器，请将主机服务器上的空目录挂载到此路径。
-***注意***: 如果您在 Windows 系统上运行 seekdb 容器，请使用 docker volume 以确保容器能正常工作。
+Seekdb 部署在 `/var/lib/seekdb` 目录中。如果您想将数据持久化到主机服务器，请将主机服务器上的空目录挂载到此路径。
+
+***注意***: 基于 SeekDB 1.4+ 的镜像使用 `/var/lib/seekdb`。旧版 1.3.x 镜像使用 `/var/lib/oceanbase`；升级时请同步更新卷挂载路径。如果您在 Windows 系统上运行 seekdb 容器，请使用 docker volume 以确保容器能正常工作。
 
 ```
 # On Linux or MacOS
 mkdir -p seekdb
-docker run -d -p 2881:2881 -p 2886:2886 -v $PWD/seekdb:/var/lib/oceanbase --name seekdb oceanbase/seekdb
+docker run -d -p 2881:2881 -v $PWD/seekdb:/var/lib/seekdb --name seekdb oceanbase/seekdb
 
 # On Windows
 docker volume create seekdb
-docker run -d -p 2881:2881 -p 2886:2886 -v seekdb:/var/lib/oceanbase --name seekdb oceanbase/seekdb
+docker run -d -p 2881:2881 -v seekdb:/var/lib/seekdb --name seekdb oceanbase/seekdb
 ```
 
 ## 连接到 seekdb 实例
@@ -80,6 +81,3 @@ docker run -d -p 2881:2881 -p 2886:2886 -v seekdb:/var/lib/oceanbase --name seek
 ```
 mysql -h 127.0.0.1 -P 2881 -u root -p    # 使用 root 帐户连接
 ```
-
-## 访问 obshell dashboard
-容器提供了一个用户友好的 Web 界面，您可以通过浏览器访问 `http://${server_ip}:2886`，登录密码与 root 用户的密码相同。如果未设置 ROOT_PASSWORD，请将密码字段留空。

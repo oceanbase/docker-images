@@ -4,7 +4,7 @@ FROM quay.io/rockylinux/rockylinux:9.4
 ARG VERSION
 ARG TARGETPLATFORM
 
-WORKDIR /var/lib/oceanbase
+WORKDIR /var/lib/seekdb
 RUN yum install -y mysql procps && yum clean all
 
 RUN --mount=type=bind,source=.,target=/build \
