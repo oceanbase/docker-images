@@ -1,0 +1,16 @@
+name: test obdiag
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'obdiag/**'
+      - '.github/workflows/*obdiag.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    uses: ./.github/workflows/reusable-build-and-test-obdiag.yml
