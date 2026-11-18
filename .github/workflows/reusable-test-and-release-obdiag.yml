@@ -1,0 +1,112 @@
+name: test and release obdiag
+
+on:
+  workflow_call:
+    inputs:
+      tag_name:
+        required: true
+        type: string
+      latest:
+        required: true
+        type: boolean
+
+permissions:
+  contents: read
+
+# Serialize releases, including latest promotion, across both entry workflows.
+concurrency:
+  group: release-obdiag
+  queue: max
+  cancel-in-progress: false
+
+jobs:
+  set-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate release tag against the locked RPM
+        id: version
+        env:
+          RELEASE_TAG: ${{ inputs.tag_name }}
+          PROMOTE_LATEST: ${{ inputs.latest }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(cat obdiag/VERSION)
+          prefix=obdiag-
+          if [[ "$PROMOTE_LATEST" == true ]]; then
+            prefix=latest-obdiag-
+          fi
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-[0-9]+$ || "$RELEASE_TAG" != "$prefix$version" ]]; then
+            echo "Release tag must match the RPM locked in obdiag/VERSION: $prefix$version" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  build-and-test:
+    needs: set-version
+    uses: ./.github/workflows/reusable-build-and-test-obdiag.yml
+    with:
+      artifact-retention-days: 7
+
+  release:
+    needs: [set-version, build-and-test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Download tested images
+        uses: actions/download-artifact@v4
+        with:
+          name: obdiag-tested-images
+          path: images
+      - uses: docker/setup-buildx-action@v3
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Log in to Quay
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_IO_USERNAME }}
+          password: ${{ secrets.QUAY_IO_PASSWORD }}
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish tested images and multi-platform tags
+        env:
+          VERSION: ${{ needs.set-version.outputs.version }}
+          PROMOTE_LATEST: ${{ inputs.latest }}
+          DOCKER_PUSH_BASE: ${{ vars.DOCKER_PUSH_BASE }}
+          QUAY_IO_PUSH_BASE: ${{ vars.QUAY_IO_PUSH_BASE }}
+          GHCR_OWNER: ${{ github.repository_owner }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${DOCKER_PUSH_BASE:?DOCKER_PUSH_BASE is required}"
+          : "${QUAY_IO_PUSH_BASE:?QUAY_IO_PUSH_BASE is required}"
+          repositories=("$DOCKER_PUSH_BASE/obdiag" "quay.io/$QUAY_IO_PUSH_BASE/obdiag" "ghcr.io/${GHCR_OWNER,,}/obdiag")
+          for arch in amd64 arm64; do
+            docker load --input "images/$arch.tar"
+            image="obdiag:test-${GITHUB_RUN_ID}-${arch}"
+            for repository in "${repositories[@]}"; do
+              docker tag "$image" "$repository:$VERSION-$arch"
+              docker push "$repository:$VERSION-$arch"
+            done
+          done
+          for repository in "${repositories[@]}"; do
+            tags=(--tag "$repository:$VERSION")
+            if [[ "$PROMOTE_LATEST" == true ]]; then
+              tags+=(--tag "$repository:latest")
+            fi
+            docker buildx imagetools create "${tags[@]}" \
+              "$repository:$VERSION-amd64" "$repository:$VERSION-arm64"
+          done

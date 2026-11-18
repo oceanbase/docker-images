@@ -1,0 +1,52 @@
+name: build and test obdiag
+
+on:
+  workflow_call:
+    inputs:
+      artifact-retention-days:
+        description: Days to retain the tested image archives
+        type: number
+        required: false
+        default: 1
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    # A repository administrator must register an isolated pooled runner with
+    # this label. Do not run untrusted pull_request code on this runner.
+    runs-on: [self-hosted, linux, x64, obdiag-test]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build and smoke test both architectures
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(cat obdiag/VERSION)
+          mkdir -p "$RUNNER_TEMP/obdiag-images"
+          for arch in amd64 arm64; do
+            image="obdiag:test-${GITHUB_RUN_ID}-${arch}"
+            docker buildx build --platform "linux/$arch" --load \
+              --build-arg "VERSION=$version" \
+              --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+              --tag "$image" ./obdiag
+            bash obdiag/test-image.sh "$image" "$version" "$arch"
+            docker save "$image" -o "$RUNNER_TEMP/obdiag-images/$arch.tar"
+          done
+      - name: Upload tested images
+        uses: actions/upload-artifact@v4
+        with:
+          name: obdiag-tested-images
+          path: ${{ runner.temp }}/obdiag-images/*.tar
+          retention-days: ${{ inputs.artifact-retention-days }}
+          if-no-files-found: error
+      - name: Clean up local test images
+        if: always()
+        shell: bash
+        run: |
+          for arch in amd64 arm64; do
+            docker image rm "obdiag:test-${GITHUB_RUN_ID}-${arch}" || true
+          done
+          rm -rf "$RUNNER_TEMP/obdiag-images"
