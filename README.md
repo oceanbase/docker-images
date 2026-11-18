@@ -24,6 +24,9 @@ The release flow follows oceanbase-ce's separate version and latest entry points
 - `latest-obdiag-5.0.2-12026102116` publishes that version and promotes `latest`.
 - Both tags must match `obdiag/VERSION`. To release another RPM, update the lock
   in the tagged commit first. Normal releases never update `latest`.
+- To retry a latest release with a workflow fix without moving an existing tag,
+  manually run `release-latest-obdiag.yml` on the corrected ref and pass the exact
+  locked RPM as its `version` input. It performs the same builds, tests and release.
 
 Both release paths require successful amd64 and arm64 builds and smoke tests
 (RPM version/architecture, CLI version/help, check/gather help and initialized
@@ -36,12 +39,9 @@ receive the multi-platform version tag and supporting `<version>-amd64` / `<vers
 
 Branch pushes affecting obdiag and manual runs of `test-obdiag.yml` only build,
 test and upload short-lived Actions artifacts; they never log into or push to
-any image registry. Tests run exclusively on a pooled self-hosted runner with
-labels `self-hosted`, `linux`, `x64`, `obdiag-test`. A repository administrator
-must register this runner before enabling the workflows. It needs Bash, Docker
-(accessible to the runner user), Buildx, and ARM64 emulation (binfmt or
-`/usr/bin/buildkit-qemu-aarch64`). Use isolated pooled machines; no
-`pull_request` trigger is configured to execute untrusted fork code on them.
+any image registry. Tests run on GitHub-hosted `ubuntu-latest` runners. The workflow
+sets up Docker Buildx and QEMU for ARM64, so no self-hosted runner registration is
+required. AMD64 tests run natively and ARM64 tests run through emulation.
 
 Publishing uses the same `DOCKER_USERNAME`, `DOCKER_PASSWORD`,
 `QUAY_IO_USERNAME`, `QUAY_IO_PASSWORD` secrets and `DOCKER_PUSH_BASE`,
