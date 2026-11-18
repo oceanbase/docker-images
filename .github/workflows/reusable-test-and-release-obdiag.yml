@@ -16,6 +16,7 @@ permissions:
 # Serialize releases, including latest promotion, across both entry workflows.
 concurrency:
   group: release-obdiag
+  queue: max
   cancel-in-progress: false
 
 jobs:
@@ -47,6 +48,8 @@ jobs:
   build-and-test:
     needs: set-version
     uses: ./.github/workflows/reusable-build-and-test-obdiag.yml
+    with:
+      artifact-retention-days: 7
 
   release:
     needs: [set-version, build-and-test]

@@ -2,6 +2,12 @@ name: build and test obdiag
 
 on:
   workflow_call:
+    inputs:
+      artifact-retention-days:
+        description: Days to retain the tested image archives
+        type: number
+        required: false
+        default: 1
 
 permissions:
   contents: read
@@ -34,7 +40,7 @@ jobs:
         with:
           name: obdiag-tested-images
           path: ${{ runner.temp }}/obdiag-images/*.tar
-          retention-days: 1
+          retention-days: ${{ inputs.artifact-retention-days }}
           if-no-files-found: error
       - name: Clean up local test images
         if: always()

@@ -28,8 +28,11 @@ The release flow follows oceanbase-ce's separate version and latest entry points
 Both release paths require successful amd64 and arm64 builds and smoke tests
 (RPM version/architecture, CLI version/help, check/gather help and initialized
 configuration). The release job downloads and publishes the tested image archives
-without rebuilding them. Docker Hub, Quay and GHCR receive the multi-platform
-version tag and supporting `<version>-amd64` / `<version>-arm64` tags.
+without rebuilding them. Release image archives are retained for 7 days; branch
+and manual test archives are retained for 1 day. Both release entry points share
+a serial queue with up to 100 pending runs, so new releases do not replace an
+existing pending release while the queue has capacity. Docker Hub, Quay and GHCR
+receive the multi-platform version tag and supporting `<version>-amd64` / `<version>-arm64` tags.
 
 Branch pushes affecting obdiag and manual runs of `test-obdiag.yml` only build,
 test and upload short-lived Actions artifacts; they never log into or push to
