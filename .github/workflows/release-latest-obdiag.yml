@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'latest-obdiag-[0-9]+.[0-9]+.[0-9]+-[0-9]+'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact RPM version locked in obdiag/VERSION
+        type: string
+        required: true
 
 permissions:
   contents: read
@@ -14,5 +20,5 @@ jobs:
     uses: ./.github/workflows/reusable-test-and-release-obdiag.yml
     secrets: inherit
     with:
-      tag_name: ${{ github.ref_name }}
+      tag_name: ${{ github.event_name == 'workflow_dispatch' && format('latest-obdiag-{0}', inputs.version) || github.ref_name }}
       latest: true
