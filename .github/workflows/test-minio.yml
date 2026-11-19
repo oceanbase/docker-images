@@ -44,6 +44,8 @@ jobs:
         run: bash minio/build.sh "$ARCH" "$OUTPUT" "$SERVER_IMAGE" "$CLIENT_IMAGE"
       - name: Native runtime and persistence tests
         run: bash minio/test.sh "$ARCH" "$OUTPUT/evidence" "$SERVER_IMAGE" "$CLIENT_IMAGE"
+      - name: Distributed rejoin source regression (unpatched failure and patched pass)
+        run: bash minio/test-source.sh "$OUTPUT"
       - name: Export tested images and source materials
         run: |
           set -euo pipefail

@@ -23,7 +23,8 @@ ARG MINIO_COMMIT
 ARG MINIO_VERSION
 LABEL io.oceanbase.upstream.revision="${MINIO_COMMIT}" \
       org.opencontainers.image.version="${MINIO_VERSION}-test" \
-      org.opencontainers.image.description="Unmodified MinIO community source; independent OceanBase test build, not an official MinIO image or AIStor."
+      io.oceanbase.source.patch="distributed-rejoin-v1" \
+      org.opencontainers.image.description="MinIO community source with OceanBase distributed rejoin patch; independent test build, not an official MinIO image or AIStor."
 COPY bin/minio bin/mc /usr/bin/
 COPY src/minio/LICENSE src/minio/CREDITS /licenses/minio/
 COPY src/mc/LICENSE src/mc/CREDITS /licenses/mc/
