@@ -27,7 +27,7 @@ jobs:
     timeout-minutes: 60
     env:
       ARCH: ${{ matrix.arch }}
-      OUTPUT: ${{ runner.temp }}/minio-build
+      OUTPUT: ${{ github.workspace }}/.minio-build
       SERVER_IMAGE: minio:test-${{ github.run_id }}-${{ matrix.arch }}
       CLIENT_IMAGE: minio-mc:test-${{ github.run_id }}-${{ matrix.arch }}
     steps:
