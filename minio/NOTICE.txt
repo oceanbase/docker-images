@@ -1,0 +1,32 @@
+MinIO Notice / MinIO 说明
+
+These test images are independently built by OceanBase from unmodified MinIO
+community server and MinIO Client (mc) source code. They are not official MinIO,
+Inc. release artifacts and are not MinIO AIStor. This project is not affiliated
+with or endorsed by MinIO, Inc.
+
+MinIO and mc retain their GNU AGPL v3 licenses (version 3 or later, as stated in
+the source headers). Their licenses are separate from this repository's license.
+Third-party dependencies retain their respective licenses and copyrights.
+This notice does not waive the distributor's obligations or restrict recipients'
+rights. Software and packaging are provided without warranty, subject to the
+applicable licenses. Users should review the terms applicable to their use case.
+
+这些测试镜像由 OceanBase 使用未经修改的 MinIO 社区服务端及 mc 上游源码独立构建，
+并非 MinIO, Inc. 官方发布产物，也不是 MinIO AIStor。本项目与 MinIO, Inc. 无关联或背书关系。
+MinIO 和 mc 保留其 GNU AGPL v3 许可（以源码声明的第 3 版或更新版本为准），
+与本仓库的许可分别适用。第三方依赖保留各自许可及版权。
+本说明不免除分发者的义务，不限制接收者的开源许可权利；软件和封装按适用许可提供，
+不附带担保。请审阅适用于自身使用场景的条款。
+
+Pinned upstream source and licenses:
+MinIO: https://github.com/minio/minio/tree/9e49d5e7a648f00e26f2246f4dc28e6b07f8c84a
+mc: https://github.com/minio/mc/tree/7394ce0dd2a80935aded936b09fa12cbb3cb8096
+Original LICENSE/CREDITS: /licenses/minio (server), /licenses/mc (both images).
+Dependency notices: /licenses/distribution; Debian notices: /licenses/runtime-doc
+and /licenses/common. Runtime package versions: /usr/share/doc/oceanbase-minio/runtime-packages.txt.
+Build/source information: /usr/share/doc/oceanbase-minio/SOURCE-CODE.txt and versions.json.
+
+This test packaging uses Debian bookworm, curl, CA certificates and Go 1.24.8.
+Binaries are marked DEVELOPMENT.*.sourcebuild. It is a fresh source build, not
+the internal r3 documentation-only repack. No internal r3 tag is overwritten.
