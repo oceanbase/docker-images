@@ -56,3 +56,6 @@ bash minio/test.sh amd64 /tmp/minio-test-new minio:local-test minio-mc:local-tes
 沿用上游 LICENSE、CREDITS 和依赖声明，镜像内的 `SOURCE-CODE.txt` 指向对应构建材料。
 公开发版前仍需补齐正式版本命名、长期源码附件、运行时依赖源码材料和三个仓库
 发布配置；本轮不启用这些发布操作。
+
+双架构分布式重加入、原有数据升级及启停验证结果见
+[2026-11-19 验证记录](validation-20261119.md)，包含持续读取的实际错误计数和测试边界。
