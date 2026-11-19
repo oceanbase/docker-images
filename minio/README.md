@@ -7,10 +7,9 @@
 Debian 基础镜像摘要。两组件来自 ob-operator 当前使用的上游版本；这里是全新的
 源码构建，不依赖其内网 r2/r3 镜像或源码下载服务器。
 
-MinIO 应用 [分布式重加入补丁](patches/README.md)，恢复 ob-operator Helm 的
-`/minio/health/lakehouse-ready` 探针，并避免副本状态不确定时误报对象不存在。
-mc 上游源码不修改。补丁、原始源码、修改后源码和补丁 SHA256 均随测试包归档；
-两种镜像保留同一份完整中英文声明。CI 在原始读取逻辑上复现错误，再验证修复。
+当前候选保持 MinIO、mc 上游源码不修改，不应用之前的重加入补丁。
+新增独立部署检查组件，源码和限制见 [deployment/README.md](deployment/README.md)。
+CI 对照原始源码归档逐文件校验，mc 镜像额外包含部署辅助程序；两组件的中英文声明不变。
 
 | 组件 | 源码版本 |
 | --- | --- |

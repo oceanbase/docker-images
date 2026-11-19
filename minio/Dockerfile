@@ -23,8 +23,8 @@ ARG MINIO_COMMIT
 ARG MINIO_VERSION
 LABEL io.oceanbase.upstream.revision="${MINIO_COMMIT}" \
       org.opencontainers.image.version="${MINIO_VERSION}-test" \
-      io.oceanbase.source.patch="distributed-rejoin-v1" \
-      org.opencontainers.image.description="MinIO community source with OceanBase distributed rejoin patch; independent test build, not an official MinIO image or AIStor."
+      io.oceanbase.source.patch="none" \
+      org.opencontainers.image.description="Unmodified MinIO community source; independent test build, not an official MinIO image or AIStor."
 COPY bin/minio bin/mc /usr/bin/
 COPY src/minio/LICENSE src/minio/CREDITS /licenses/minio/
 COPY src/mc/LICENSE src/mc/CREDITS /licenses/mc/
@@ -43,5 +43,6 @@ LABEL io.oceanbase.upstream.revision="${MC_COMMIT}" \
       org.opencontainers.image.version="${MC_VERSION}-test" \
       org.opencontainers.image.description="Unmodified MinIO mc community source; independent OceanBase test build, not an official MinIO image."
 COPY bin/mc /usr/bin/mc
+COPY bin/deployment-guard bin/known-object-get.sh /usr/local/bin/
 COPY src/mc/LICENSE src/mc/CREDITS /licenses/mc/
 ENTRYPOINT ["/usr/bin/mc"]
