@@ -1,5 +1,9 @@
 # No-patch deployment candidate
 
+**Experimental; false-404 acceptance has not passed.** The ARM distributed run
+still returned nine false 404 responses with this candidate. Do not treat this
+helper as a complete fix or a release-ready deployment. See the measured results.
+
 MinIO and mc upstream source files remain unchanged. `verify-upstream.py` compares
 all original archive files after vendoring and compilation. Historical patches in
 `../patches` are not applied or included in the current build recipe/source bundle.
@@ -19,9 +23,10 @@ Admission requires three consecutive successful rounds: three online drives,
 all three peer connectivity matrices online, server uptimes at least 15 seconds,
 and a real PUT followed by GET via each peer with exact payload comparison.
 Each process gets its own canary in a private deployment-guard-health bucket.
-The canary is removed after admission. The guard observes the MinIO PID/starttime
-in the shared process namespace so a same-Pod process restart cannot reuse an old
-admission decision. After admission, surviving nodes use normal write-quorum
+The canary is removed after admission. The guard polls the MinIO PID/starttime
+in the shared process namespace and repeats admission when it observes a changed
+process. Polling and Kubernetes endpoint updates are asynchronous; they do not
+guarantee instant withdrawal from every traffic path. After admission, surviving nodes use normal write-quorum
 health; losing one peer does not automatically remove all surviving nodes.
 
 This is an experiment, not proof that external admission can fix MinIO's internal
@@ -43,3 +48,13 @@ environment variables. Retry logs expose neither credentials nor signed URLs.
 Credentials used for admin checks are privileged. This candidate reuses the
 existing Secret inside the Pod, without adding network routes or exposing a new
 S3 proxy. A separate least-privilege probe account requires additional validation.
+
+The isolated [Helm candidate](chart/README.md) is derived from ob-operator's
+MinIO chart. Its defaults reference the AMD64 test images from run 44492216536;
+set both image values to the ARM64 tags when testing ARM. It is a fixed
+three-server, one-drive-per-server HTTP experiment, not a general-purpose
+production chart. The current guard deliberately checks this exact topology.
+The tested Helm chart and [distributed harness](tests/distributed/README.md) were
+added after the image build; obtain them from this repository, not from the
+earlier build's source archive. See [measured results](../validation-no-patch-20261119.md)
+for the baseline, direct GET and explicit adapter results.

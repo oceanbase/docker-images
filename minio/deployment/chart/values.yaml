@@ -1,0 +1,29 @@
+mode: distributed
+distributed:
+  replicas: 3
+  drivesPerNode: 1
+  driveSize: 2Gi
+image: minio:test-44492216536-amd64
+imagePullPolicy: IfNotPresent
+rootExistingSecret: ''
+existingClaim: ''
+runAsUser: 10001
+runAsGroup: 10001
+fsGroup: 10001
+size: 2Gi
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    cpu: '1'
+    memory: 1Gi
+storageClass: local-path
+region: us-east-1
+nodeSelector: {}
+tolerations: []
+imagePullSecrets: []
+
+guard:
+  enabled: true
+  image: minio-mc:test-44492216536-amd64
