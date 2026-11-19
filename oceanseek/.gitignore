@@ -1,0 +1,5 @@
+rpms/*.rpm
+rpms/SHA256SUMS
+__pycache__/
+helper/oceanbase-helper
+helper/LICENSE
