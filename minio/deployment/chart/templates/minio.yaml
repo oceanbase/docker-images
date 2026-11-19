@@ -116,6 +116,7 @@ spec:
       {{- if and $distributed .Values.guard.enabled }}
       shareProcessNamespace: true
       {{- end }}
+      terminationGracePeriodSeconds: {{ add 30 (int .Values.shutdownDrainSeconds) }}
       automountServiceAccountToken: false
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets: {{ toYaml . | nindent 8 }}
@@ -147,6 +148,8 @@ spec:
             - name: MINIO_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef: {name: {{ include "obminio.secret" . }}, key: rootPassword}
+            - name: MINIO_DNS_CACHE_TTL
+              value: {{ .Values.dnsCacheTTL | quote }}
             - name: MINIO_REGION_NAME
               value: {{ .Values.region | quote }}
           ports:
@@ -157,6 +160,14 @@ spec:
             {{- if $distributed }}
             timeoutSeconds: 5
             {{- end }}
+          {{- if gt (int .Values.shutdownDrainSeconds) 0 }}
+          # Keep S3 and peer RPC alive while terminating endpoints are withdrawn.
+          # This is a propagation window, not a quorum/read correctness guarantee.
+          lifecycle:
+            preStop:
+              exec:
+                command: [/bin/sh, -c, {{ printf "sleep %d" (int .Values.shutdownDrainSeconds) | quote }}]
+          {{- end }}
           livenessProbe:
             httpGet: {path: /minio/health/live, port: s3}
             initialDelaySeconds: 30

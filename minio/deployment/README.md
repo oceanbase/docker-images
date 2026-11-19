@@ -1,8 +1,10 @@
 # No-patch deployment candidate
 
-**Experimental; false-404 acceptance has not passed.** The ARM distributed run
-still returned nine false 404 responses with this candidate. Do not treat this
-helper as a complete fix or a release-ready deployment. See the measured results.
+**Test only; no release.** Admission alone returned false 404 on ARM. The current
+Helm candidate additionally refreshes upstream DNS every second and drains for
+ten seconds before SIGTERM. Both native architectures passed the scoped follow-up
+without false 404; this does not change or prove correctness of upstream quorum
+logic for every failure mode. See [the latest results](../validation-dns-drain-20261119.md).
 
 MinIO and mc upstream source files remain unchanged. `verify-upstream.py` compares
 all original archive files after vendoring and compilation. Historical patches in
@@ -58,3 +60,11 @@ The tested Helm chart and [distributed harness](tests/distributed/README.md) wer
 added after the image build; obtain them from this repository, not from the
 earlier build's source archive. See [measured results](../validation-no-patch-20261119.md)
 for the baseline, direct GET and explicit adapter results.
+
+The Helm values `dnsCacheTTL: 1s` and `shutdownDrainSeconds: 10` use existing
+upstream behavior. The Pod termination grace period is 30 seconds plus the drain
+interval. On an existing release use explicit `--set-string dnsCacheTTL=1s
+--set shutdownDrainSeconds=10` with `--reuse-values`, and recreate Pods deliberately
+because the StatefulSet uses OnDelete. This increases DNS refresh frequency and
+planned shutdown latency. PreStop is bypassed by SIGKILL, power loss or forced
+zero-grace deletion. Transient unavailability and startup retries still occur.

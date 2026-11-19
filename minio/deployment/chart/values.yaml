@@ -27,3 +27,9 @@ imagePullSecrets: []
 guard:
   enabled: true
   image: minio-mc:test-44492216536-amd64
+
+# Allow Service endpoint withdrawal before delivering SIGTERM to MinIO.
+shutdownDrainSeconds: 10
+
+# Refresh changing Pod IPs promptly; supported by the pinned upstream release.
+dnsCacheTTL: 1s
