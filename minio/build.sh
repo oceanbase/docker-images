@@ -40,14 +40,18 @@ for project in minio mc; do
     grep -Fxq $'\tbuild\tGOARCH='"$arch" "$out/logs/$project-buildinfo.txt"
   ) 2>&1 | tee "$out/logs/$project-build.log"
 done
-python3 "$recipe/collect-notices.py" "$out/src" "$out/licenses"
+python3 "$recipe/collect-notices.py" "$out/src" "$out/licenses/go-dependencies"
 cp -a "$(go env GOROOT)/src" "$out/toolchain/"
 cp "$(go env GOROOT)/LICENSE" "$out/toolchain/"
 cp "$recipe/versions.json" "$out/docs/versions.json"
 distribution_source="https://github.com/${GITHUB_REPOSITORY:-oceanbase/docker-images}"
 distribution_revision=${GITHUB_SHA:-$(git -C "$recipe" rev-parse HEAD)}
-printf 'Independent source build.\nPackaging: %s/tree/%s/minio\nSources and checksums: versions.json\nBuild recipes and vendored upstream source: source-and-build-materials-%s.tar.gz in the matching Actions artifacts.\nThis is a test package; no image registry publication is performed.\n' \
-  "$distribution_source" "$distribution_revision" "$arch" > "$out/docs/SOURCE-CODE.txt"
+materials_url="$distribution_source/actions"
+if [[ -n "${GITHUB_RUN_ID:-}" ]]; then
+  materials_url="$distribution_source/actions/runs/$GITHUB_RUN_ID"
+fi
+printf 'Independent source build / 独立源码构建\nPackaging / 构建配方: %s/tree/%s/minio\nBuild and source artifacts / 构建及源码产物: %s\nArtifact / 产物名称: minio-test-packages-%s\nSource archive / 源码归档: source-and-build-materials-%s.tar.gz\nSources and checksums / 源码与校验值: versions.json\nThe source archive includes upstream sources, vendored dependencies, Go runtime source and build recipes.\n源码归档包含上游源码、vendored 依赖、Go runtime 源码及构建配方。\nThis is a test package; no image registry publication is performed.\n本包仅用于测试，未向镜像仓库发布。\n' \
+  "$distribution_source" "$distribution_revision" "$materials_url" "$arch" "$arch" > "$out/docs/SOURCE-CODE.txt"
 printf '%s\n' 'bin/' 'logs/' > "$out/recipe/.gitignore"
 cat > "$out/.dockerignore" <<'EOF'
 *

@@ -50,6 +50,9 @@ jobs:
           mkdir -p "$OUTPUT/packages"
           docker save "$SERVER_IMAGE" "$CLIENT_IMAGE" | gzip > "$OUTPUT/packages/minio-images-$ARCH.tar.gz"
           tar -czf "$OUTPUT/packages/source-and-build-materials-$ARCH.tar.gz" -C "$OUTPUT" src upstream recipe toolchain docs logs
+          for notice in docs/NOTICE.txt recipe/NOTICE.txt; do
+            tar -xOzf "$OUTPUT/packages/source-and-build-materials-$ARCH.tar.gz" "$notice" | cmp - minio/NOTICE.txt
+          done
           cd "$OUTPUT/packages"
           sha256sum ./*.tar.gz > SHA256SUMS
       - name: Upload test packages

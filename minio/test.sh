@@ -66,10 +66,22 @@ readback() {
   done
   pass
 }
-for image in "$server" "$client"; do
+for component in minio mc; do
+  image=$server
+  if [[ "$component" == mc ]]; then image=$client; fi
   [[ "$(docker image inspect --format '{{.Architecture}}/{{.Os}}' "$image")" == "$arch/linux" ]]
   docker run --rm --network none --entrypoint sh "$image" -ec \
     'test -s /licenses/mc/LICENSE; test -s /licenses/mc/CREDITS; test -s /usr/share/doc/oceanbase-minio/NOTICE.txt; test -s /usr/share/doc/oceanbase-minio/SOURCE-CODE.txt'
+  docker run --rm --network none --entrypoint cat "$image" /usr/share/doc/oceanbase-minio/NOTICE.txt > "$work/$component-NOTICE.txt"
+  cmp "$recipe/NOTICE.txt" "$work/$component-NOTICE.txt"
+  sha256sum "$work/$component-NOTICE.txt" >> "$work/notice-sha256sums.txt"
+  docker run --rm --network none --entrypoint cat "$image" /usr/share/doc/oceanbase-minio/SOURCE-CODE.txt > "$work/$component-SOURCE-CODE.txt"
+  grep -Fq "source-and-build-materials-$arch.tar.gz" "$work/$component-SOURCE-CODE.txt"
+  if [[ -n "${GITHUB_RUN_ID:-}" ]]; then
+    grep -Fxq "Build and source artifacts / 构建及源码产物: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" "$work/$component-SOURCE-CODE.txt"
+  fi
+  docker run --rm --network none --entrypoint sh "$image" -ec \
+    'test -n "$(find /licenses/distribution/go-dependencies -type f -print -quit)"'
 done
 docker image inspect "$server" "$client" > "$work/images.json"
 docker run --rm --network none "$server" --version > "$work/minio-version.txt"
