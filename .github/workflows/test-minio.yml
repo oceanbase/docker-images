@@ -1,0 +1,78 @@
+name: build and test MinIO images
+
+on:
+  push:
+    branches: ['**']
+    paths: ['minio/**', '.github/workflows/test-minio.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: minio-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    env:
+      ARCH: ${{ matrix.arch }}
+      OUTPUT: ${{ github.workspace }}/.minio-build
+      SERVER_IMAGE: minio:test-${{ github.run_id }}-${{ matrix.arch }}
+      CLIENT_IMAGE: minio-mc:test-${{ github.run_id }}-${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Read pinned Go version
+        id: toolchain
+        run: echo "version=$(jq -r .go minio/versions.json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ steps.toolchain.outputs.version }}
+          cache: false
+      - uses: docker/setup-buildx-action@v3
+      - name: Build both images from pinned source
+        run: bash minio/build.sh "$ARCH" "$OUTPUT" "$SERVER_IMAGE" "$CLIENT_IMAGE"
+      - name: Native runtime and persistence tests
+        run: bash minio/test.sh "$ARCH" "$OUTPUT/evidence" "$SERVER_IMAGE" "$CLIENT_IMAGE"
+      - name: Independent deployment guard regressions
+        working-directory: minio/deployment
+        run: go test -v ./... | tee "$OUTPUT/logs/deployment-guard-tests.log"
+      - name: Export tested images and source materials
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUTPUT/packages"
+          docker save "$SERVER_IMAGE" "$CLIENT_IMAGE" | gzip > "$OUTPUT/packages/minio-images-$ARCH.tar.gz"
+          tar -czf "$OUTPUT/packages/source-and-build-materials-$ARCH.tar.gz" -C "$OUTPUT" src upstream recipe toolchain docs logs
+          for notice in docs/NOTICE.txt recipe/NOTICE.txt; do
+            tar -xOzf "$OUTPUT/packages/source-and-build-materials-$ARCH.tar.gz" "$notice" | cmp - minio/NOTICE.txt
+          done
+          cd "$OUTPUT/packages"
+          sha256sum ./*.tar.gz > SHA256SUMS
+      - name: Upload test packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: minio-test-packages-${{ matrix.arch }}
+          path: ${{ env.OUTPUT }}/packages/
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
+      - name: Upload build and test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: minio-test-evidence-${{ matrix.arch }}
+          path: |
+            ${{ env.OUTPUT }}/logs/
+            ${{ env.OUTPUT }}/evidence/
+          retention-days: 7
+          if-no-files-found: warn

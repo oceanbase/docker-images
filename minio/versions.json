@@ -1,0 +1,16 @@
+{
+  "go": "1.24.8",
+  "base_image": "debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc",
+  "minio": {
+    "tag": "RELEASE.2025-10-15T17-29-55Z",
+    "version": "2025-10-15T17:29:55Z",
+    "commit": "9e49d5e7a648f00e26f2246f4dc28e6b07f8c84a",
+    "archive_sha256": "45521908307306e925c98d629e1c17d78c8b72b6ee242b1bfb1409f7d8ee5841"
+  },
+  "mc": {
+    "tag": "RELEASE.2025-08-13T08-35-41Z",
+    "version": "2025-08-13T08:35:41Z",
+    "commit": "7394ce0dd2a80935aded936b09fa12cbb3cb8096",
+    "archive_sha256": "95cd293c7119f16921a6dc515a1fb74a2227f19fd994b9c8b770a154e802ac44"
+  }
+}
