@@ -1,0 +1,86 @@
+name: Publish reviewed MinIO and mc to Docker Hub
+
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/publish-reviewed-minio-mc.yml]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: publish-reviewed-minio-mc
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'oceanbase/docker-images' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: minio
+            tag: RELEASE.2025-10-15T17-29-55Z
+            index: sha256:5869e38d53f05abb1ce9f5e147b8c3ff83ef08b91bb3498dc0a951144d68286a
+          - image: mc
+            tag: RELEASE.2025-08-13T08-35-41Z
+            index: sha256:36ad86efb75f735683d5aae34960e1620cf37b75fb20bb5389eb653d81972e29
+    env:
+      IMAGE: ${{ matrix.image }}
+      TAG: ${{ matrix.tag }}
+      INDEX: ${{ matrix.index }}
+      NOTICE_SHA256: 8e1197ec10e96132eb576a140469c7717edffbeb65d99000c8fb49546c28b14a
+    steps:
+      - name: Install Skopeo if needed
+        run: |
+          if ! command -v skopeo >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y skopeo
+          fi
+
+      - name: Publish the reviewed index and both original platform manifests
+        shell: bash
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          set -euo pipefail
+          authfile="$RUNNER_TEMP/dockerhub-auth.json"
+          trap 'rm -f "$authfile"' EXIT
+          printf '%s' "$DOCKER_PASSWORD" | skopeo login --authfile "$authfile" \
+            --username "$DOCKER_USERNAME" --password-stdin docker.io
+          source="docker://quay.io/oceanbase/$IMAGE@$INDEX"
+          destination="docker://docker.io/oceanbase/$IMAGE:$TAG"
+          if skopeo inspect --authfile "$authfile" --raw "$destination" > existing.json 2> inspect.err; then
+            echo "${INDEX#sha256:}  existing.json" | sha256sum --check
+          elif grep -Eiq 'manifest unknown|name unknown' inspect.err; then
+            skopeo copy --all --preserve-digests --retry-times 3 --src-no-creds \
+              --dest-authfile "$authfile" "$source" "$destination"
+          else
+            cat inspect.err >&2
+            exit 1
+          fi
+
+      - name: Verify anonymous pull and the bilingual notice on both platforms
+        shell: bash
+        run: |
+          set -euo pipefail
+          destination="docker://docker.io/oceanbase/$IMAGE:$TAG"
+          skopeo copy --all --preserve-digests --src-no-creds --retry-times 3 \
+            --dest-oci-accept-uncompressed-layers "$destination" oci:readback:reviewed
+          test "$(jq -r '.manifests[0].digest' readback/index.json)" = "$INDEX"
+          cd readback/blobs/sha256
+          index=${INDEX#sha256:}
+          echo "$index  $index" | sha256sum --check
+          jq -e '[.manifests[].platform | [.os, .architecture]] | sort ==
+            [["linux","amd64"],["linux","arm64"]]' "$index" >/dev/null
+          for arch in amd64 arm64; do
+            manifest=$(jq -er --arg arch "$arch" '.manifests[] | select(.platform.architecture == $arch).digest' "$index")
+            # Build 44492216536 installs the reviewed NOTICE in the third layer on both platforms.
+            layer=$(jq -er '.layers[2].digest' "${manifest#sha256:}")
+            tar -xOf "${layer#sha256:}" usr/share/doc/oceanbase-minio/NOTICE.txt > "$RUNNER_TEMP/NOTICE.txt"
+            echo "$NOTICE_SHA256  $RUNNER_TEMP/NOTICE.txt" | sha256sum --check
+            echo "$IMAGE:$TAG linux/$arch $manifest NOTICE $NOTICE_SHA256" >> "$GITHUB_STEP_SUMMARY"
+          done
