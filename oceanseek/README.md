@@ -80,7 +80,9 @@ changing RPMs. The recipes never download a different product version as fallbac
 ## Deployment contract and provenance
 
 - OceanSeek: `/home/admin/oceanbase`, ports 2881/2882/2886,
-  `oceanbase-helper start`; obshell is included in the OceanSeek RPM.
+  `oceanbase-helper start`; the image installs obshell 4.5.1.3 from the public OceanBase
+  EL7 mirror over the bundled executable. The Dockerfile pins the RPM checksum
+  for each architecture and checks the version at the runtime path.
 - LogService: `/home/admin/oblogservice`, ports 50051/50052,
   `oceanbase-helper logservice start`.
 - Both clear inherited ENTRYPOINT, run as root and use Asia/Shanghai (UTC+8).

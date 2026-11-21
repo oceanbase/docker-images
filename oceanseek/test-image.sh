@@ -46,7 +46,8 @@ docker run --rm --entrypoint /bin/bash "$image" -ceu '
   test -z "$(find /tmp /var/cache/yum -name \*.rpm -print -quit 2>/dev/null)"
   if [[ "$component" = oceanseek ]]; then
     binary="$directory/bin/observer"
-    test -x "$directory/bin/obshell"
+    test "$(rpm -q --qf "%{VERSION}-%{RELEASE}.%{ARCH}" obshell)" = "4.5.1.3-12026111915.el7.$rpm_arch"
+    test "$("$directory/bin/obshell" version)" = "4.5.1.3-12026111915"
     test "$(rpm -q --qf "%{VERSION}-%{RELEASE}" oceanseek-libs)" = "$version"
     test "$(stat -c %u "$directory/etc")" = "$(id -u)"
     "$binary" -V
