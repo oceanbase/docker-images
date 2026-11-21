@@ -7,13 +7,13 @@ local archives without registry login, image pushes, Git tags or GitHub releases
 
 ## Inputs
 
-Use a Docker host with Buildx on an authorized pooled test machine. The checked-in
-examples are **amd64 internal validation inputs**, not a public release:
+Use a Docker host with Buildx on an authorized pooled test machine. The default checksum
+examples select these amd64 RPMs.
 
 | Component | RPM packages | VERSION |
 | --- | --- | --- |
 | OceanSeek | `oceanseek`, `oceanseek-libs` | `4.6.3.1-282026111420.al8` |
-| LogService | `oblogservice-ce` | `1.3.3-42026110118.al8` |
+| LogService | `oblogservice-ce` | `1.3.3-142026112012.el7` |
 
 Obtain the matching RPMs through your authorized artifact channel. Put them in
 `oceanseek/rpms/` and `logservice/rpms/`, respectively, then copy each directory's
@@ -63,7 +63,8 @@ Observer/LogService version commands, utilities, timezone and container metadata
 then saves two `.tar.gz` Docker archives, image metadata and `SHA256SUMS`.
 Load an archive with `gzip -dc oceanseek-amd64.tar.gz | docker load`.
 `PLATFORM=linux/arm64` requires matching ARM RPMs, checksum manifests, helper and
-base image; the checked-in manifests are only for amd64.
+base image. For LogService on ARM, copy
+`logservice/rpms/SHA256SUMS.arm64.example` to `logservice/rpms/SHA256SUMS`.
 
 For a single component, use the repository root as build context:
 
