@@ -10,10 +10,13 @@ local archives without registry login, image pushes, Git tags or GitHub releases
 Use a Docker host with Buildx on an authorized pooled test machine. The default checksum
 examples select these amd64 RPMs.
 
-| Component | RPM packages | VERSION |
-| --- | --- | --- |
-| OceanSeek | `oceanseek`, `oceanseek-libs` | `4.6.3.0-482026112114.el7` |
-| LogService | `oblogservice-ce` | `1.3.3-152026112014.el7` |
+| Component | RPM packages | RPM VERSION | Multi-platform image tag |
+| --- | --- | --- | --- |
+| OceanSeek | `oceanseek`, `oceanseek-libs` | `4.6.3.0-482026112114.el7` | `4.6.3.0-482026112114` |
+| LogService | `oblogservice-ce` | `1.3.3-152026112014.el7` | `1.3.3-152026112014` |
+
+The image tag combines the product version and numeric RPM build. One tag covers
+`linux/amd64` and `linux/arm64`. The RPM input check uses the full release, including `.el7`.
 
 Download the listed RPMs from the public OceanBase stable EL7 mirror for
 [x86_64](https://mirrors.oceanbase.com/community/stable/el/7/x86_64/) or
