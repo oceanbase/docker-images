@@ -12,10 +12,12 @@ examples select these amd64 RPMs.
 
 | Component | RPM packages | VERSION |
 | --- | --- | --- |
-| OceanSeek | `oceanseek`, `oceanseek-libs` | `4.6.3.1-282026111420.al8` |
-| LogService | `oblogservice-ce` | `1.3.3-142026112012.el7` |
+| OceanSeek | `oceanseek`, `oceanseek-libs` | `4.6.3.0-482026112114.el7` |
+| LogService | `oblogservice-ce` | `1.3.3-152026112014.el7` |
 
-Obtain the matching RPMs through your authorized artifact channel. Put them in
+Download the listed RPMs from the public OceanBase stable EL7 mirror for
+[x86_64](https://mirrors.oceanbase.com/community/stable/el/7/x86_64/) or
+[aarch64](https://mirrors.oceanbase.com/community/stable/el/7/aarch64/). Put them in
 `oceanseek/rpms/` and `logservice/rpms/`, respectively, then copy each directory's
 `SHA256SUMS.example` to `SHA256SUMS`. Verify the hashes against the artifact source.
 RPMs and credentials are excluded from Git. Builds fail on missing, extra,
@@ -63,8 +65,8 @@ Observer/LogService version commands, utilities, timezone and container metadata
 then saves two `.tar.gz` Docker archives, image metadata and `SHA256SUMS`.
 Load an archive with `gzip -dc oceanseek-amd64.tar.gz | docker load`.
 `PLATFORM=linux/arm64` requires matching ARM RPMs, checksum manifests, helper and
-base image. For LogService on ARM, copy
-`logservice/rpms/SHA256SUMS.arm64.example` to `logservice/rpms/SHA256SUMS`.
+base image. For both components on ARM, use the corresponding
+`rpms/SHA256SUMS.arm64.example` as `rpms/SHA256SUMS`.
 
 For a single component, use the repository root as build context:
 
@@ -98,8 +100,8 @@ changing RPMs. The recipes never download a different product version as fallbac
 
 Imported from the ob-operator working snapshot at base commit
 `8bfebb94ff12a784ec83c0b7048d45be5665cd7e` on 2026-11-19, including its uncommitted
-checksum validation, utility and UTC+8 changes. OceanSeek package names and the
-amd64 checksums follow its `20261118-external-deps-dev-r34` build snapshot.
+checksum validation, utility and UTC+8 changes. The RPM checksums for both
+architectures come from the public OceanBase stable EL7 repository metadata.
 Adaptations here are repository-relative build mounts, explicit helper input and
 `oceanseek`/`oceanseek-libs` package checks in place of the older `oceanbase.ai-ce`
 names. No changes to ob-operator deployment defaults are included.

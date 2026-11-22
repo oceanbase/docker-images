@@ -45,7 +45,9 @@ ENV LD_LIBRARY_PATH=/home/admin/oceanbase/lib
 RUN dependencies="$(ldd /home/admin/oceanbase/bin/observer)" \
     && printf '%s\n' "${dependencies}" \
     && [[ "${dependencies}" != *"not found"* ]] \
-    && /home/admin/oceanbase/bin/observer -V
+    && version_output="$(/home/admin/oceanbase/bin/observer -V 2>&1)" \
+    && revision="${RPM_VERSION#*-}" \
+    && grep -F "REVISION: ${revision%%.*}-" <<< "$version_output"
 WORKDIR /home/admin/oceanbase
 EXPOSE 2881 2882 2886
 ENTRYPOINT []
