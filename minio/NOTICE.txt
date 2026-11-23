@@ -1,0 +1,21 @@
+MinIO Notice
+
+For community convenience only, this project compiles MinIO from its upstream open-source code and packages the resulting binaries into container images. MinIO is distributed under the GNU AGPL v3 license.
+
+- This project is not affiliated with or endorsed by MinIO, Inc.
+- Users are solely responsible for reviewing and complying with the MinIO license terms applicable to their use case. The AGPL v3 may impose obligations that differ from this project's Apache 2.0 license.
+- This project and its contributors make no warranty or representation regarding MinIO's license compliance. Users should consult their own legal counsel if they have concerns.
+- If the AGPL v3 terms are a concern, consider alternative storage backends.
+
+For the full MinIO license text, see: https://github.com/minio/minio/blob/master/LICENSE
+
+MinIO 说明
+
+本项目仅为方便社区用户，基于 MinIO 的上游开源源码进行编译，并将编译产物封装为容器镜像。MinIO 以 GNU AGPL v3 许可协议分发。
+
+- 本项目与 MinIO, Inc. 不存在关联或背书关系。
+- 用户应自行审阅并遵守 MinIO 许可协议中适用于其使用场景的条款。AGPL v3 的义务可能与本项目的 Apache 2.0 许可协议有所不同。
+- 本项目及其贡献者不对 MinIO 的许可合规性作任何担保或声明。如有疑虑，用户应咨询其法律顾问。
+- 如 AGPL v3 条款对您构成顾虑，可考虑替代存储方案。
+
+MinIO 完整许可协议文本见：https://github.com/minio/minio/blob/master/LICENSE
