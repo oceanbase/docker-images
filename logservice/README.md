@@ -10,7 +10,8 @@ RPM version. Download the matching public EL7 RPM for
 [aarch64](https://mirrors.oceanbase.com/community/stable/el/7/aarch64/).
 Copy the matching checksum file (`rpms/SHA256SUMS.example` for amd64 or
 `rpms/SHA256SUMS.arm64.example` for arm64) to `rpms/SHA256SUMS`.
-The helper must support the `logservice start` subcommand.
+The Dockerfile copies the `logservice start` helper from the official
+`oceanbase-helper:2.4.0` image for the target architecture.
 The image listens on ports 50051/50052 and defaults to
 `/home/admin/oblogservice/bin/oceanbase-helper logservice start`.
 There is no publishing workflow for this image.

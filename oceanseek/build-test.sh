@@ -2,7 +2,6 @@
 # Run only on an authorized pooled test machine. Never publishes images.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-: "${HELPER_IMAGE:?Set HELPER_IMAGE to a compatible, preloaded helper image}"
 : "${OUTPUT_DIR:?Set OUTPUT_DIR to an empty directory for test artifacts}"
 platform=${PLATFORM:-linux/amd64}
 arch=${platform#linux/}
@@ -17,7 +16,7 @@ for component in oceanseek logservice; do
   version=$(cat "$component/VERSION")
   image="local/$component:test-$version-$arch"
   docker buildx build --load --platform "$platform" \
-    --build-arg "HELPER_IMAGE=$HELPER_IMAGE" --build-arg "RPM_VERSION=$version" \
+    --build-arg "RPM_VERSION=$version" \
     -f "$component/Dockerfile" -t "$image" .
   bash oceanseek/test-image.sh "$component" "$image" "$version" "$arch"
   docker image inspect "$image" > "$OUTPUT_DIR/$component.image.json"

@@ -27,38 +27,18 @@ RPMs and credentials are excluded from Git. Builds fail on missing, extra,
 corrupt, symlinked or duplicate RPM inputs, duplicate package names, or an
 installed package version that differs from `RPM_VERSION`.
 
-An explicit `HELPER_IMAGE` is required. Use a compatible helper from the same
-ob-operator revision as the deployment, pinned by digest or preloaded image ID.
-It must provide `/home/admin/oceanbase/bin/oceanbase-helper`, Python 3, and a
-GLIBC-compatible system (the original recipe uses Alibaba Cloud Linux 3).
-Do not substitute the older Anolis 8 helper base.
-
-To build a helper instead, compile it in the matching ob-operator checkout:
-
-```bash
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -buildvcs=false \
-  -o /path/to/docker-images/oceanseek/helper/oceanbase-helper ./cmd/oceanbase-helper
-cp LICENSE /path/to/docker-images/oceanseek/helper/LICENSE
-```
-
-Then, from the docker-images repository root:
-
-```bash
-docker buildx build --load --platform linux/amd64 \
-  -f oceanseek/helper/Dockerfile -t local/oceanbase-helper:test .
-```
-
-The helper binary and its source LICENSE are caller-supplied, ignored inputs.
-`BASE_IMAGE` can override the helper recipe's pinned base digest for the target
-architecture. The helper source remains maintained in ob-operator.
+Both Dockerfiles select the target platform from the official
+`quay.io/oceanbase/oceanbase-helper:2.4.0` image and copy its helper executable
+into the pinned Alibaba Cloud Linux 3 runtime. The helper and runtime references
+use multi-platform index digests. The bundled helper license comes from
+[ob-operator 2.4.0](https://github.com/oceanbase/ob-operator/blob/2.4.0/LICENSE).
 
 ## Build, smoke test and archive
 
 From the repository root **on a pooled machine**:
 
 ```bash
-HELPER_IMAGE=local/oceanbase-helper:test \
-  OUTPUT_DIR=/workspace/oceanseek-image-test \
+OUTPUT_DIR=/workspace/oceanseek-image-test \
   bash oceanseek/build-test.sh
 ```
 
@@ -67,15 +47,14 @@ checks RPM versions and architecture, helper paths, shared-library resolution,
 Observer/LogService version commands, utilities, timezone and container metadata,
 then saves two `.tar.gz` Docker archives, image metadata and `SHA256SUMS`.
 Load an archive with `gzip -dc oceanseek-amd64.tar.gz | docker load`.
-`PLATFORM=linux/arm64` requires matching ARM RPMs, checksum manifests, helper and
-base image. For both components on ARM, use the corresponding
+`PLATFORM=linux/arm64` requires matching ARM RPMs, checksum manifests, and a builder capable
+of executing arm64 images. For both components on ARM, use the corresponding
 `rpms/SHA256SUMS.arm64.example` as `rpms/SHA256SUMS`.
 
 For a single component, use the repository root as build context:
 
 ```bash
 docker buildx build --load --platform linux/amd64 -f oceanseek/Dockerfile \
-  --build-arg HELPER_IMAGE=local/oceanbase-helper:test \
   --build-arg RPM_VERSION="$(cat oceanseek/VERSION)" -t local/oceanseek:test .
 ```
 
@@ -105,6 +84,6 @@ Imported from the ob-operator working snapshot at base commit
 `8bfebb94ff12a784ec83c0b7048d45be5665cd7e` on 2026-11-19, including its uncommitted
 checksum validation, utility and UTC+8 changes. The RPM checksums for both
 architectures come from the public OceanBase stable EL7 repository metadata.
-Adaptations here are repository-relative build mounts, explicit helper input and
+Adaptations here are repository-relative build mounts, the pinned official helper binary and
 `oceanseek`/`oceanseek-libs` package checks in place of the older `oceanbase.ai-ce`
 names. No changes to ob-operator deployment defaults are included.

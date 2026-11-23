@@ -28,7 +28,7 @@ for field in Entrypoint Volumes; do
   value=$(docker image inspect -f "{{json .Config.$field}}" "$image")
   [[ "$value" = null || "$value" = '[]' || "$value" = '{}' ]]
 done
-docker run --rm --entrypoint /bin/bash "$image" -ceu '
+docker run --rm --platform "linux/$arch" --entrypoint /bin/bash "$image" -ceu '
   component=$1; package=$2; version=$3; directory=$4; arch=$5
   test "$(rpm -q --qf "%{VERSION}-%{RELEASE}" "$package")" = "$version"
   case "$arch" in amd64) rpm_arch=x86_64;; arm64) rpm_arch=aarch64;; esac
@@ -41,7 +41,11 @@ docker run --rm --entrypoint /bin/bash "$image" -ceu '
   ps -p $$
   pgrep -x bash
   python3 -c "import json, tarfile, gzip, pathlib, subprocess, tempfile"
-  test -x "$directory/bin/oceanbase-helper"
+  . /etc/os-release
+  test "$ID" = alinux
+  test "${VERSION_ID%%.*}" = 3
+  "$directory/bin/oceanbase-helper" --help >/dev/null
+  "$directory/bin/oceanbase-helper" logservice start --help >/dev/null
   test ! -e /tmp/verify-rpms.py
   test -z "$(find /tmp /var/cache/yum -name \*.rpm -print -quit 2>/dev/null)"
   if [[ "$component" = oceanseek ]]; then
