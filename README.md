@@ -7,8 +7,6 @@ This repository contains [Dockerfiles](https://docs.docker.com/engine/reference/
 - **oceanbase-ce**: OceanBase Community Edition database server
 - **obproxy-ce**: OceanBase connection proxy
 - **obagent**: OceanBase monitoring agent
-- **oceanseek**: [OceanSeek image build and test guide](oceanseek/README.md)
-- **logservice**: [OceanSeek LogService image](logservice/README.md)
 - **obdiag**: OceanBase diagnostic tool
 - **ob-configserver**: OceanBase configuration server
 - **obbinlog-ce**: OceanBase database with binlog service (includes Observer, OBProxy, and Binlog components)

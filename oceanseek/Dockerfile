@@ -16,14 +16,15 @@ RUN --mount=type=bind,source=oceanseek/install-runtime.sh,target=/tmp/install-ru
 COPY --from=helper /home/admin/oceanbase/bin/oceanbase-helper /home/admin/oceanbase/bin/oceanbase-helper
 COPY oceanseek/helper/LICENSE /usr/share/licenses/oceanbase-helper/LICENSE
 ARG VERSION
-ARG RPM_VERSION=${VERSION}.el7
-RUN --mount=type=bind,source=oceanseek/rpms,target=/tmp/rpms \
-    --mount=type=bind,source=oceanseek/verify-rpms.py,target=/tmp/verify-rpms.py \
-    --mount=type=bind,source=oceanseek/install-product-rpms.sh,target=/tmp/install-product-rpms.sh \
-    set -eu; \
-    bash /tmp/install-product-rpms.sh oceanseek oceanseek-libs; \
-    test "$(rpm -q --qf '%{VERSION}-%{RELEASE}' oceanseek)" = "${RPM_VERSION}"; \
-    test "$(rpm -q --qf '%{VERSION}-%{RELEASE}' oceanseek-libs)" = "${RPM_VERSION}"; \
+RUN set -eu; \
+    test -n "$VERSION"; \
+    arch=$(rpm --eval '%{_arch}'); \
+    mirror="https://mirrors.oceanbase.com/community/stable/el/7/$arch"; \
+    yum install -y \
+        "$mirror/oceanseek-${VERSION}.el7.$arch.rpm" \
+        "$mirror/oceanseek-libs-${VERSION}.el7.$arch.rpm"; \
+    test "$(rpm -q --qf '%{VERSION}-%{RELEASE}' oceanseek)" = "${VERSION}.el7"; \
+    test "$(rpm -q --qf '%{VERSION}-%{RELEASE}' oceanseek-libs)" = "${VERSION}.el7"; \
     test -x /home/admin/oceanbase/bin/observer; \
     test -x /home/admin/oceanbase/bin/oceanbase-helper; \
     command -v tar; \
@@ -46,7 +47,7 @@ RUN dependencies="$(ldd /home/admin/oceanbase/bin/observer)" \
     && printf '%s\n' "${dependencies}" \
     && [[ "${dependencies}" != *"not found"* ]] \
     && version_output="$(/home/admin/oceanbase/bin/observer -V 2>&1)" \
-    && revision="${RPM_VERSION#*-}" \
+    && revision="${VERSION#*-}" \
     && grep -F "REVISION: ${revision%%.*}-" <<< "$version_output"
 WORKDIR /home/admin/oceanbase
 EXPOSE 2881 2882 2886

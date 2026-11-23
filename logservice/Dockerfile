@@ -8,13 +8,13 @@ RUN --mount=type=bind,source=oceanseek/install-runtime.sh,target=/tmp/install-ru
 COPY --from=helper /home/admin/oceanbase/bin/oceanbase-helper /home/admin/oceanbase/bin/oceanbase-helper
 COPY oceanseek/helper/LICENSE /usr/share/licenses/oceanbase-helper/LICENSE
 ARG VERSION
-ARG RPM_VERSION=${VERSION}.el7
-RUN --mount=type=bind,source=logservice/rpms,target=/tmp/rpms \
-    --mount=type=bind,source=oceanseek/verify-rpms.py,target=/tmp/verify-rpms.py \
-    --mount=type=bind,source=oceanseek/install-product-rpms.sh,target=/tmp/install-product-rpms.sh \
-    set -eu; \
-    bash /tmp/install-product-rpms.sh oblogservice-ce; \
-    test "$(rpm -q --qf '%{VERSION}-%{RELEASE}' oblogservice-ce)" = "${RPM_VERSION}"; \
+RUN set -eu; \
+    test -n "$VERSION"; \
+    arch=$(rpm --eval '%{_arch}'); \
+    mirror="https://mirrors.oceanbase.com/community/stable/el/7/$arch"; \
+    yum install -y \
+        "$mirror/oblogservice-ce-${VERSION}.el7.$arch.rpm"; \
+    test "$(rpm -q --qf '%{VERSION}-%{RELEASE}' oblogservice-ce)" = "${VERSION}.el7"; \
     test -x /home/admin/oblogservice/bin/oblogservice; \
     test -x /home/admin/oceanbase/bin/oceanbase-helper; \
     ln -s /home/admin/oceanbase/bin/oceanbase-helper /home/admin/oblogservice/bin/oceanbase-helper; \
