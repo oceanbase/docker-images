@@ -23,14 +23,17 @@ jobs:
         include:
           - image: oceanseek
             tag: 4.6.3.0-482026112114
-            index: sha256:2798a7c1e7b62e49ac3194a82ce5e04435f9f246603b37bd113467d72968e481
+            index: sha256:88a808ee95b8da5bd9d73bb310564d779df8c3cb1587e3660abb66923b31a4c2
+            replaces: sha256:2798a7c1e7b62e49ac3194a82ce5e04435f9f246603b37bd113467d72968e481
           - image: logservice
             tag: 1.3.3-152026112014
-            index: sha256:1cdf146c967ef2bcb7e7dca5741de8dbaba20e6fe3e8ac6c105803d06f53dd5b
+            index: sha256:8353693e9333fa5bda0900a846a8e617d93fa0d1de2f7bc6e405aeb5dc9330d8
+            replaces: sha256:1cdf146c967ef2bcb7e7dca5741de8dbaba20e6fe3e8ac6c105803d06f53dd5b
     env:
       IMAGE: ${{ matrix.image }}
       TAG: ${{ matrix.tag }}
       INDEX: ${{ matrix.index }}
+      REPLACES: ${{ matrix.replaces }}
     steps:
       - name: Install Skopeo if needed
         run: |
@@ -57,11 +60,19 @@ jobs:
             --username "$QUAY_USERNAME" --password-stdin quay.io
           source="docker://quay.io/oceanbase/$IMAGE@$INDEX"
           dest="docker://docker.io/oceanbase/$IMAGE:$TAG"
-          if skopeo inspect --authfile "$authfile" --raw "$dest" > existing.json 2> inspect.err; then
-            echo "${INDEX#sha256:}  existing.json" | sha256sum --check
-          elif grep -Eiq 'manifest unknown|name unknown' inspect.err; then
+          copy_index() {
             skopeo copy --all --preserve-digests --retry-times 3 \
               --authfile "$authfile" "$source" "$dest"
+          }
+          if skopeo inspect --authfile "$authfile" --raw "$dest" > existing.json 2> inspect.err; then
+            current="sha256:$(sha256sum existing.json | cut -d' ' -f1)"
+            case "$current" in
+              "$INDEX") echo "Already published $current" ;;
+              "$REPLACES") copy_index ;;
+              *) echo "::error::Unexpected current digest $current for $dest"; exit 1 ;;
+            esac
+          elif grep -Eiq 'manifest unknown|name unknown' inspect.err; then
+            copy_index
           else
             cat inspect.err >&2
             exit 1
