@@ -31,7 +31,17 @@ done
 docker run --rm --platform "linux/$arch" --entrypoint /bin/bash "$image" -ceu '
   component=$1; package=$2; version=$3; directory=$4; arch=$5
   test "$(rpm -q --qf "%{VERSION}-%{RELEASE}" "$package")" = "$version"
-  case "$arch" in amd64) rpm_arch=x86_64;; arm64) rpm_arch=aarch64;; esac
+  # SHA-256 of the executable in the corresponding official helper 2.4.0 image.
+  case "$arch" in
+    amd64)
+      rpm_arch=x86_64
+      helper_sha=170531b95d0df61db304cd1c2d917be0d2263b4d7eacaac6864894d0ec96b039
+      ;;
+    arm64)
+      rpm_arch=aarch64
+      helper_sha=7249e80bcdd3a90963c79bd2fab47552f36eca7806ef5b1b3557d576245e8297
+      ;;
+  esac
   test "$(rpm -q --qf "%{ARCH}" "$package")" = "$rpm_arch"
   test "$TZ" = Asia/Shanghai
   test "$(date +%z)" = +0800
@@ -44,7 +54,8 @@ docker run --rm --platform "linux/$arch" --entrypoint /bin/bash "$image" -ceu '
   . /etc/os-release
   test "$ID" = alinux
   test "${VERSION_ID%%.*}" = 3
-  "$directory/bin/oceanbase-helper" --help >/dev/null
+  echo "$helper_sha  $directory/bin/oceanbase-helper" | sha256sum -c -
+  "$directory/bin/oceanbase-helper" start --help >/dev/null
   "$directory/bin/oceanbase-helper" logservice start --help >/dev/null
   test ! -e /tmp/verify-rpms.py
   test -z "$(find /tmp /var/cache/yum -name \*.rpm -print -quit 2>/dev/null)"
