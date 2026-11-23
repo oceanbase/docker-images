@@ -14,4 +14,5 @@ The Dockerfile copies the `logservice start` helper from the official
 `oceanbase-helper:2.4.0` image for the target architecture.
 The image listens on ports 50051/50052 and defaults to
 `/home/admin/oblogservice/bin/oceanbase-helper logservice start`.
-There is no publishing workflow for this image.
+Push a `logservice-<version>` Git tag to build both architectures from source and
+publish the version tag to Docker Hub, Quay and GHCR.

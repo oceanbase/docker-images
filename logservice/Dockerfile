@@ -7,16 +7,13 @@ RUN --mount=type=bind,source=oceanseek/install-runtime.sh,target=/tmp/install-ru
     bash /tmp/install-runtime.sh
 COPY --from=helper /home/admin/oceanbase/bin/oceanbase-helper /home/admin/oceanbase/bin/oceanbase-helper
 COPY oceanseek/helper/LICENSE /usr/share/licenses/oceanbase-helper/LICENSE
-ARG RPM_VERSION
+ARG VERSION
+ARG RPM_VERSION=${VERSION}.el7
 RUN --mount=type=bind,source=logservice/rpms,target=/tmp/rpms \
     --mount=type=bind,source=oceanseek/verify-rpms.py,target=/tmp/verify-rpms.py \
+    --mount=type=bind,source=oceanseek/install-product-rpms.sh,target=/tmp/install-product-rpms.sh \
     set -eu; \
-    test -n "${RPM_VERSION}"; \
-    cd /tmp/rpms; \
-    python3 /tmp/verify-rpms.py /tmp/rpms; \
-    duplicates="$(rpm -qp --qf '%{NAME}\n' ./*.rpm | sort | uniq -d)"; \
-    test -z "${duplicates}"; \
-    yum install -y tar procps-ng ./*.rpm; \
+    bash /tmp/install-product-rpms.sh oblogservice-ce; \
     test "$(rpm -q --qf '%{VERSION}-%{RELEASE}' oblogservice-ce)" = "${RPM_VERSION}"; \
     test -x /home/admin/oblogservice/bin/oblogservice; \
     test -x /home/admin/oceanbase/bin/oceanbase-helper; \

@@ -1,9 +1,11 @@
-# OceanSeek image (build and test only)
+# OceanSeek image
 
 These recipes import the Operator/Compose images from `oceanbase/ob-operator`
 `build/ss`. OceanSeek and LogService each use one image across both deployers.
-This directory has no release workflow: the script below builds, tests and saves
-local archives without registry login, image pushes, Git tags or GitHub releases.
+Pushing a Git tag named `oceanseek-<version>` or `logservice-<version>` builds
+that component for amd64 and arm64 and publishes `:<version>` to Docker Hub,
+Quay and GHCR. The release build installs the matching EL7 RPMs from the public
+OceanBase mirror. The local build and test flow below uses predownloaded RPMs.
 
 ## Inputs
 
