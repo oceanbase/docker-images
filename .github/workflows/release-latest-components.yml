@@ -1,0 +1,95 @@
+name: release latest obagent and obproxy
+
+on:
+  push:
+    tags:
+      - 'latest-obagent-*'
+      - 'latest-obproxy-ce-*'
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: release-latest-${{ startsWith(github.ref_name, 'latest-obagent-') && 'obagent' || 'obproxy-ce' }}
+  queue: max
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate release tag
+        id: version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$RELEASE_TAG" =~ ^latest-obagent-([0-9]+\.[0-9]+\.[0-9]+-[0-9]+)$ ]]; then
+            component=obagent
+            version=${BASH_REMATCH[1]}
+          elif [[ "$RELEASE_TAG" =~ ^latest-obproxy-ce-([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+-[0-9]+)$ ]]; then
+            component=obproxy-ce
+            version=${BASH_REMATCH[1]}
+          else
+            echo "Unsupported latest release tag: $RELEASE_TAG" >&2
+            exit 1
+          fi
+          echo "component=$component" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Log in to Quay
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_IO_USERNAME }}
+          password: ${{ secrets.QUAY_IO_PASSWORD }}
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Promote published multi-platform images to latest
+        env:
+          COMPONENT: ${{ steps.version.outputs.component }}
+          VERSION: ${{ steps.version.outputs.version }}
+          DOCKER_PUSH_BASE: ${{ vars.DOCKER_PUSH_BASE }}
+          QUAY_IO_PUSH_BASE: ${{ vars.QUAY_IO_PUSH_BASE }}
+          GHCR_OWNER: ${{ github.repository_owner }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${DOCKER_PUSH_BASE:?DOCKER_PUSH_BASE is required}"
+          : "${QUAY_IO_PUSH_BASE:?QUAY_IO_PUSH_BASE is required}"
+          repositories=("$DOCKER_PUSH_BASE/$COMPONENT" "quay.io/$QUAY_IO_PUSH_BASE/$COMPONENT" "ghcr.io/${GHCR_OWNER,,}/$COMPONENT")
+          digests=()
+          # Resolve every source before updating any latest tag.
+          for i in "${!repositories[@]}"; do
+            source="${repositories[$i]}:$VERSION"
+            manifest="$RUNNER_TEMP/source-$i.json"
+            docker buildx imagetools inspect --raw "$source" > "$manifest"
+            jq -e '([.manifests[].platform | select(.os == "linux") | .architecture] | unique) as $arches | ($arches | index("amd64") != null) and ($arches | index("arm64") != null)' "$manifest" > /dev/null
+            digests+=("sha256:$(sha256sum "$manifest" | cut -d ' ' -f 1)")
+            if [[ "${digests[$i]}" != "${digests[0]}" ]]; then
+              echo "Source manifest differs between registries: $source" >&2
+              exit 1
+            fi
+            echo "Source: $source@${digests[$i]}"
+          done
+          for i in "${!repositories[@]}"; do
+            repository=${repositories[$i]}
+            digest=${digests[$i]}
+            docker buildx imagetools create --tag "$repository:latest" "$repository@$digest"
+            manifest="$RUNNER_TEMP/latest-$i.json"
+            docker buildx imagetools inspect --raw "$repository:latest" > "$manifest"
+            actual="sha256:$(sha256sum "$manifest" | cut -d ' ' -f 1)"
+            test "$actual" = "$digest"
+            echo "$repository:latest -> $VERSION ($actual)" >> "$GITHUB_STEP_SUMMARY"
+          done
