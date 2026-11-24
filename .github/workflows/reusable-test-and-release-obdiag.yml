@@ -9,9 +9,15 @@ on:
       latest:
         required: true
         type: boolean
+      tested-run-id:
+        description: Reuse verified image archives from an earlier latest release
+        type: string
+        required: false
+        default: ''
 
 permissions:
   contents: read
+  actions: read
 
 # Serialize releases, including latest promotion, across both entry workflows.
 concurrency:
@@ -24,6 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      image-run-id: ${{ steps.source.outputs.run-id }}
     steps:
       - uses: actions/checkout@v5
       - name: Validate release tag against the locked RPM
@@ -44,18 +51,62 @@ jobs:
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Validate tested image source
+        id: source
+        env:
+          TESTED_RUN_ID: ${{ inputs.tested-run-id }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$TESTED_RUN_ID" ]]; then
+            echo "run-id=$GITHUB_RUN_ID" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          [[ "$TESTED_RUN_ID" =~ ^[0-9]+$ ]]
+          repo="repos/$GITHUB_REPOSITORY"
+          run=$(gh api "$repo/actions/runs/$TESTED_RUN_ID")
+          jq -e --arg repo "$GITHUB_REPOSITORY" '
+            .status == "completed" and
+            .head_repository.full_name == $repo and
+            .path == ".github/workflows/release-latest-obdiag.yml" and
+            (.event == "push" or .event == "workflow_dispatch")
+          ' <<< "$run" > /dev/null
+          gh api "$repo/actions/runs/$TESTED_RUN_ID/jobs" | jq -e '
+            any(.jobs[]; .name == "release / build-and-test / build-and-test" and .conclusion == "success")
+          ' > /dev/null
+          source_sha=$(jq -r .head_sha <<< "$run")
+          for path in obdiag/Dockerfile obdiag/VERSION obdiag/test-image.sh .github/workflows/reusable-build-and-test-obdiag.yml; do
+            source_blob=$(gh api "$repo/contents/$path?ref=$source_sha" --jq .sha)
+            current_blob=$(gh api "$repo/contents/$path?ref=$GITHUB_SHA" --jq .sha)
+            if [[ "$source_blob" != "$current_blob" ]]; then
+              echo "Image build or test definition changed: $path; run fresh tests" >&2
+              exit 1
+            fi
+          done
+          gh api "$repo/actions/runs/$TESTED_RUN_ID/artifacts" | jq -e '
+            [.artifacts[] | select(.name == "obdiag-tested-images" and .expired == false)] | length == 1
+          ' > /dev/null
+          echo "run-id=$TESTED_RUN_ID" >> "$GITHUB_OUTPUT"
 
   build-and-test:
     needs: set-version
+    if: ${{ inputs.tested-run-id == '' }}
     uses: ./.github/workflows/reusable-build-and-test-obdiag.yml
     with:
       artifact-retention-days: 7
 
   release:
     needs: [set-version, build-and-test]
+    if: ${{ always() && needs.set-version.result == 'success' && (needs.build-and-test.result == 'success' || (needs.build-and-test.result == 'skipped' && inputs.tested-run-id != '')) }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        registry: [dockerhub, quay, ghcr]
     permissions:
       contents: read
+      actions: read
       packages: write
     steps:
       - name: Download tested images
@@ -63,19 +114,24 @@ jobs:
         with:
           name: obdiag-tested-images
           path: images
+          run-id: ${{ needs.set-version.outputs.image-run-id }}
+          github-token: ${{ github.token }}
       - uses: docker/setup-buildx-action@v3
       - name: Log in to Docker Hub
+        if: matrix.registry == 'dockerhub'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Log in to Quay
+        if: matrix.registry == 'quay'
         uses: docker/login-action@v3
         with:
           registry: quay.io
           username: ${{ secrets.QUAY_IO_USERNAME }}
           password: ${{ secrets.QUAY_IO_PASSWORD }}
       - name: Log in to GHCR
+        if: matrix.registry == 'ghcr'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -84,6 +140,8 @@ jobs:
       - name: Publish tested images and multi-platform tags
         env:
           VERSION: ${{ needs.set-version.outputs.version }}
+          IMAGE_RUN_ID: ${{ needs.set-version.outputs.image-run-id }}
+          REGISTRY: ${{ matrix.registry }}
           PROMOTE_LATEST: ${{ inputs.latest }}
           DOCKER_PUSH_BASE: ${{ vars.DOCKER_PUSH_BASE }}
           QUAY_IO_PUSH_BASE: ${{ vars.QUAY_IO_PUSH_BASE }}
@@ -91,22 +149,28 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          : "${DOCKER_PUSH_BASE:?DOCKER_PUSH_BASE is required}"
-          : "${QUAY_IO_PUSH_BASE:?QUAY_IO_PUSH_BASE is required}"
-          repositories=("$DOCKER_PUSH_BASE/obdiag" "quay.io/$QUAY_IO_PUSH_BASE/obdiag" "ghcr.io/${GHCR_OWNER,,}/obdiag")
+          case "$REGISTRY" in
+            dockerhub) repository="${DOCKER_PUSH_BASE:?DOCKER_PUSH_BASE is required}/obdiag" ;;
+            quay) repository="quay.io/${QUAY_IO_PUSH_BASE:?QUAY_IO_PUSH_BASE is required}/obdiag" ;;
+            ghcr) repository="ghcr.io/${GHCR_OWNER,,}/obdiag" ;;
+            *) exit 1 ;;
+          esac
           for arch in amd64 arm64; do
             docker load --input "images/$arch.tar"
-            image="obdiag:test-${GITHUB_RUN_ID}-${arch}"
-            for repository in "${repositories[@]}"; do
-              docker tag "$image" "$repository:$VERSION-$arch"
-              docker push "$repository:$VERSION-$arch"
-            done
+            image="obdiag:test-${IMAGE_RUN_ID}-${arch}"
+            docker tag "$image" "$repository:$VERSION-$arch"
+            docker push "$repository:$VERSION-$arch"
           done
-          for repository in "${repositories[@]}"; do
-            tags=(--tag "$repository:$VERSION")
-            if [[ "$PROMOTE_LATEST" == true ]]; then
-              tags+=(--tag "$repository:latest")
-            fi
-            docker buildx imagetools create "${tags[@]}" \
-              "$repository:$VERSION-amd64" "$repository:$VERSION-arm64"
-          done
+          tags=(--tag "$repository:$VERSION")
+          if [[ "$PROMOTE_LATEST" == true ]]; then
+            tags+=(--tag "$repository:latest")
+          fi
+          docker buildx imagetools create "${tags[@]}" \
+            "$repository:$VERSION-amd64" "$repository:$VERSION-arm64"
+          docker buildx imagetools inspect --raw "$repository:$VERSION" > "$RUNNER_TEMP/version.json"
+          jq -e '[.manifests[].platform | select(.os == "linux") | .architecture] | sort == ["amd64", "arm64"]' "$RUNNER_TEMP/version.json" > /dev/null
+          if [[ "$PROMOTE_LATEST" == true ]]; then
+            docker buildx imagetools inspect --raw "$repository:latest" > "$RUNNER_TEMP/latest.json"
+            cmp "$RUNNER_TEMP/version.json" "$RUNNER_TEMP/latest.json"
+          fi
+          echo "$repository:$VERSION published; latest=$PROMOTE_LATEST; tested run=$IMAGE_RUN_ID" >> "$GITHUB_STEP_SUMMARY"

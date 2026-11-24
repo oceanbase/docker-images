@@ -14,12 +14,16 @@ permissions:
 
 jobs:
   build-and-test:
-    # A repository administrator must register an isolated pooled runner with
-    # this label. Do not run untrusted pull_request code on this runner.
-    runs-on: [self-hosted, linux, x64, obdiag-test]
+    runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Build and smoke test both architectures
         shell: bash
         run: |
